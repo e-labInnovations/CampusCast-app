@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
+import RecordingAudioGraph from '../components/RecordingAudioGraph'
 
 const Home = () => {
     const [isRecording, setIsRecording] = useState(false);
@@ -24,8 +25,9 @@ const Home = () => {
                     playsInSilentModeIOS: true
                 });
 
+
                 const { recording } = await Audio.Recording.createAsync(
-                    Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+                    Audio.RecordingOptionsPresets.HIGH_QUALITY
                 );
 
                 setRecording(recording);
@@ -91,7 +93,7 @@ const Home = () => {
     };
 
     const sendRecording = async () => {
-        setIsRecording(false);
+        await stopRecording()
 
         // Send recording logic here
     };
@@ -118,28 +120,30 @@ const Home = () => {
                 {isRecording ? (
                     <>
                         <TouchableOpacity onPress={deleteRecording} style={[styles.deleteIcon]}>
-                            <Ionicons name="trash-outline" size={32} color="#999" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingIcon, isRecording && styles.recordingActive]}>
-                            {isRecording ? (
-                                <Ionicons name="pause-outline" size={32} color="#fff" />
-                            ) : (
-                                <Ionicons name="mic-sharp" size={32} color="#fff" />
-                            )}
+                            <Ionicons name="trash-outline" size={26} color="#999" />
                         </TouchableOpacity>
 
                         <View style={styles.durationContainer}>
                             <Text style={styles.durationText}>{getDurationFormatted(recordingDuration)}</Text>
                         </View>
 
+                        <RecordingAudioGraph isPlaying={!isPaused} />
+
+                        <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingIcon1, isRecording && styles.recordingActive]}>
+                            {isPaused ? (
+                                <Ionicons name="mic-sharp" size={26} color="#fff" />
+                            ) : (
+                                <Ionicons name="pause-outline" size={26} color="#fff" />
+                            )}
+                        </TouchableOpacity>
+
                         <TouchableOpacity onPress={sendRecording} style={[styles.sendIcon]}>
-                            <Ionicons name="send-outline" size={32} color="#fff" />
+                            <Ionicons name="send-outline" size={26} color="#fff" />
                         </TouchableOpacity>
                     </>
                 ) : (
                     <TouchableOpacity onPress={isRecording ? pauseRecording : startRecording} style={[styles.recordingIcon, isRecording && styles.recordingActive]}>
-                        <Ionicons name="mic-sharp" size={32} color="#fff" />
+                        <Ionicons name="mic-sharp" size={26} color="#fff" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -160,16 +164,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#fff',
         borderRadius: 50,
-        padding: 16,
+        padding: 10,
         elevation: 2,
     },
     recordingIcon: {
         backgroundColor: '#999',
         borderRadius: 50,
-        width: 64,
-        height: 64,
+        width: 46,
+        height: 46,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    recordingIcon1: {
+        backgroundColor: '#999',
+        borderRadius: 50,
+        width: 46,
+        height: 46,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 5,
     },
     recordingActive: {
         backgroundColor: '#f00',
@@ -177,23 +190,23 @@ const styles = StyleSheet.create({
     deleteIcon: {
         backgroundColor: '#fff',
         borderRadius: 50,
-        width: 64,
-        height: 64,
+        width: 46,
+        height: 46,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 10
+        marginHorizontal: 5,
     },
     sendIcon: {
         backgroundColor: '#3cb371',
         borderRadius: 50,
-        width: 64,
-        height: 64,
+        width: 46,
+        height: 46,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 10
+        marginHorizontal: 5,
     },
     durationContainer: {
-        marginLeft: 16,
+        marginHorizontal: 5,
     },
     durationText: {
         color: '#000',
