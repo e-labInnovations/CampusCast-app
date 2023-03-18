@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { Audio } from 'expo-av';
@@ -7,13 +7,21 @@ import * as Sharing from 'expo-sharing';
 import RecordingAudioGraph from '../components/RecordingAudioGraph'
 
 const Home = () => {
+    // Refs for the audio
+    const AudioRecorder = useRef(new Audio.Recording());
+    const AudioPlayer = useRef(new Audio.Sound());
+
     const [isRecording, setIsRecording] = useState(false);
     const [recording, setRecording] = useState()
-    const [lastRecording, setLastRecording] = useState(null)
+    const [lastRecording, setLastRecording] = useState({})
+    const [recordedURI, setRecordedURI] = useState("");
     const [isPaused, setIsPaused] = useState(false);
 
     const [recordingDuration, setRecordingDuration] = useState(0);
     const [recordingInterval, setRecordingInterval] = useState(null);
+
+    const [isReadyToSend, setIsReadyToSend] = useState(false)
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const startRecording = async () => {
         try {
@@ -26,13 +34,18 @@ const Home = () => {
                 });
 
 
-                const { recording } = await Audio.Recording.createAsync(
+                await AudioRecorder.current.prepareToRecordAsync(
                     Audio.RecordingOptionsPresets.HIGH_QUALITY
                 );
 
-                setRecording(recording);
+                // Start recording
+                await AudioRecorder.current.startAsync();
+
                 setIsRecording(true);
+                setIsReadyToSend(false)
+                setIsPlaying(false)
                 setRecordingDuration(0);
+
                 setRecordingInterval(setInterval(() => {
                     setRecordingDuration(prevDuration => prevDuration + 1000);
                 }, 1000));
@@ -50,53 +63,90 @@ const Home = () => {
     };
 
     const stopRecording = async () => {
-        setIsRecording(false);
-        setRecording(undefined);
-        clearInterval(recordingInterval);
-        await recording.stopAndUnloadAsync();
+        try {
+            clearInterval(recordingInterval);
+            await AudioRecorder.current.stopAndUnloadAsync();
 
-        const { sound, status } = await recording.createNewLoadedSoundAsync();
-        let updatedRecordings = {
-            sound: sound,
-            duration: getDurationFormatted(status.durationMillis),
-            file: recording.getURI()
+            const result = AudioRecorder.current.getURI();
+            if (result)
+                setRecordedURI(result);
+
+            // Reset the Audio Recorder
+            AudioRecorder.current = new Audio.Recording();
+        } catch (error) {
+            console.log(error);
         }
-
-        setLastRecording(updatedRecordings);
     };
 
     const pauseRecording = async () => {
         setIsPaused(true)
         Toast.show({ type: 'success', text1: 'Recording', text2: 'paused' });
-        recording.pauseAsync()
+        AudioRecorder.current.pauseAsync()
         clearInterval(recordingInterval);
     };
 
     const resumeRecording = async () => {
         setIsPaused(false);
         Toast.show({ type: 'success', text1: 'Recording', text2: 'resume' });
-        recording.startAsync()
+        AudioRecorder.current.startAsync()
         setRecordingInterval(setInterval(() => {
             setRecordingDuration(prevDuration => prevDuration + 1000);
         }, 1000));
     }
 
     const deleteRecording = async () => {
-        await stopRecording()
-
-        // Delete recording logic here
-        Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'message'
-        });
+        if (isReadyToSend) {
+            setIsRecording(false);
+        } else {
+            await stopRecording()
+            setIsRecording(false);
+        }
     };
 
     const sendRecording = async () => {
-        await stopRecording()
-
-        // Send recording logic here
+        if (!isReadyToSend) {
+            await stopRecording()
+            setIsReadyToSend(true)
+        } else {
+            Sharing.shareAsync(recordedURI)
+            setIsRecording(false);
+        }
     };
+
+    const PlayRecordedAudio = async () => {
+        try {
+            console.log('\nplayFile', recordedURI);
+            AudioPlayer.current = new Audio.Sound()
+            await AudioPlayer.current.loadAsync({ uri: recordedURI }, {}, true);
+
+            // Get Player Status
+            const playerStatus = await AudioPlayer.current.getStatusAsync();
+
+            // Play if song is loaded successfully
+            if (playerStatus.isLoaded) {
+                if (playerStatus.isPlaying === false) {
+                    AudioPlayer.current.playAsync();
+                    setIsPlaying(true);
+                }
+            }
+        } catch (error) {
+            console.error('PlayError: ', error);
+        }
+    }
+
+    const StopPlaying = async () => {
+        try {
+            //Get Player Status
+            const playerStatus = await AudioPlayer.current.getStatusAsync();
+
+            // If song is playing then stop it
+            if (playerStatus.isLoaded === true)
+                await AudioPlayer.current.unloadAsync();
+
+            setIsPlaying(false);
+        } catch (error) { }
+    };
+
 
     const getDurationFormatted = (millis) => {
         const minutes = millis / 1000 / 60
@@ -109,36 +159,51 @@ const Home = () => {
     return (
         <View style={styles.container}>
             <Text>Help</Text>
-            {lastRecording && (
-                <View style={styles.row}>
-                    <Text style={styles.fill}>Recording - {lastRecording.duration}</Text>
-                    <Button style={styles.button} onPress={() => lastRecording.sound.replayAsync()} title="Play"></Button>
-                    <Button style={styles.button} onPress={() => Sharing.shareAsync(lastRecording.file)} title="Share"></Button>
-                </View>
-            )}
+
             <View style={styles.recordingButton}>
                 {isRecording ? (
                     <>
                         <TouchableOpacity onPress={deleteRecording} style={[styles.deleteIcon]}>
-                            <Ionicons name="trash-outline" size={26} color="#999" />
+                            <Ionicons name="trash" size={26} color="#999" />
                         </TouchableOpacity>
 
-                        <View style={styles.durationContainer}>
-                            <Text style={styles.durationText}>{getDurationFormatted(recordingDuration)}</Text>
-                        </View>
+                        {isReadyToSend ? (
+                            <>
+                                <TouchableOpacity onPress={isPlaying ? StopPlaying : PlayRecordedAudio} style={[styles.sendIcon, isPlaying ? styles.stopPlayingBtn : styles.playBtn]}>
+                                    {isPlaying ? (
+                                        <Ionicons name="stop" size={26} color="#fff" />
+                                    ) : (
+                                        <Ionicons name="play" size={26} color="#fff" />
+                                    )}
+                                </TouchableOpacity>
 
-                        <RecordingAudioGraph isPlaying={!isPaused} />
 
-                        <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingIcon1, isRecording && styles.recordingActive]}>
-                            {isPaused ? (
-                                <Ionicons name="mic-sharp" size={26} color="#fff" />
-                            ) : (
-                                <Ionicons name="pause-outline" size={26} color="#fff" />
-                            )}
-                        </TouchableOpacity>
+                                <View style={styles.durationContainer}>
+                                    <Text style={styles.durationText}>{lastRecording.duration}</Text>
+                                </View>
+                            </>
+                        ) : (
+                            <>
+                                <View style={styles.durationContainer}>
+                                    <Text style={styles.durationText}>{getDurationFormatted(recordingDuration)}</Text>
+                                </View>
+
+                                <RecordingAudioGraph isPlaying={!isPaused} />
+                            </>
+                        )}
+
+                        {!isReadyToSend &&
+                            <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingIcon1, isRecording && styles.recordingActive]}>
+                                {isPaused ? (
+                                    <Ionicons name="mic-sharp" size={26} color="#fff" />
+                                ) : (
+                                    <Ionicons name="pause" size={26} color="#fff" />
+                                )}
+                            </TouchableOpacity>
+                        }
 
                         <TouchableOpacity onPress={sendRecording} style={[styles.sendIcon]}>
-                            <Ionicons name="send-outline" size={26} color="#fff" />
+                            <Ionicons name="send" size={26} color="#fff" />
                         </TouchableOpacity>
                     </>
                 ) : (
@@ -204,6 +269,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginHorizontal: 5,
+    },
+    playBtn: {
+        backgroundColor: '#3cb371'
+    },
+    stopPlayingBtn: {
+        backgroundColor: '#f00'
     },
     durationContainer: {
         marginHorizontal: 5,
