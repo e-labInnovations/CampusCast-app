@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import Slider from '@react-native-community/slider';
 import { Audio } from 'expo-av';
 import * as Sharing from 'expo-sharing';
 import RecordingAudioGraph from '../components/RecordingAudioGraph'
@@ -144,10 +145,13 @@ const Home = () => {
 
     const onPlaybackStatusUpdate = (status) => {
         setPositionMillis(status.positionMillis)
-
+        
         if (status.positionMillis == status.playableDurationMillis) {
             setIsPlaying(false)
+            setPositionMillis(0)
         }
+
+        console.log(status);
     }
 
     const onRecordingStatusUpdate = (status) => {
@@ -186,7 +190,14 @@ const Home = () => {
                                     )}
                                 </TouchableOpacity>
 
-
+                                <Slider
+                                    style={{ width: 100, height: 40 }}
+                                    minimumValue={0}
+                                    maximumValue={playableDurationMillis}
+                                    value={positionMillis}
+                                    minimumTrackTintColor="#000000"
+                                    maximumTrackTintColor="#000000"
+                                />
                                 <View style={styles.durationContainer}>
                                     <Text style={styles.durationText}>{getDurationFormatted(isPlaying ? positionMillis : playableDurationMillis)}</Text>
                                 </View>
@@ -271,7 +282,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     sendButton: {
-        backgroundColor: '#3cb371',
+        backgroundColor: '#2b2f60',
         borderRadius: 50,
         width: 46,
         height: 46,
