@@ -12,16 +12,15 @@ const Home = () => {
     const AudioPlayer = useRef(new Audio.Sound());
 
     const [isRecording, setIsRecording] = useState(false);
-    const [recording, setRecording] = useState()
-    const [lastRecording, setLastRecording] = useState({})
     const [recordedURI, setRecordedURI] = useState("");
     const [isPaused, setIsPaused] = useState(false);
 
     const [recordingDuration, setRecordingDuration] = useState(0);
-    const [recordingInterval, setRecordingInterval] = useState(null);
 
     const [isReadyToSend, setIsReadyToSend] = useState(false)
     const [isPlaying, setIsPlaying] = useState(false);
+    const [playableDurationMillis, setPlayableDurationMillis] = useState(0);
+    const [positionMillis, setPositionMillis] = useState(0);
 
     const startRecording = async () => {
         try {
@@ -38,17 +37,15 @@ const Home = () => {
                     Audio.RecordingOptionsPresets.HIGH_QUALITY
                 );
 
+                AudioRecorder.current.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
+
                 // Start recording
                 await AudioRecorder.current.startAsync();
 
                 setIsRecording(true);
                 setIsReadyToSend(false)
                 setIsPlaying(false)
-                setRecordingDuration(0);
-
-                setRecordingInterval(setInterval(() => {
-                    setRecordingDuration(prevDuration => prevDuration + 1000);
-                }, 1000));
+                setIsPaused(false);
             } else {
                 Toast.show({
                     type: 'error',
@@ -64,12 +61,14 @@ const Home = () => {
 
     const stopRecording = async () => {
         try {
-            clearInterval(recordingInterval);
             await AudioRecorder.current.stopAndUnloadAsync();
 
             const result = AudioRecorder.current.getURI();
             if (result)
                 setRecordedURI(result);
+
+            const status = await AudioRecorder.current.getStatusAsync();
+            setPlayableDurationMillis(status.durationMillis)
 
             // Reset the Audio Recorder
             AudioRecorder.current = new Audio.Recording();
@@ -82,16 +81,12 @@ const Home = () => {
         setIsPaused(true)
         Toast.show({ type: 'success', text1: 'Recording', text2: 'paused' });
         AudioRecorder.current.pauseAsync()
-        clearInterval(recordingInterval);
     };
 
     const resumeRecording = async () => {
         setIsPaused(false);
         Toast.show({ type: 'success', text1: 'Recording', text2: 'resume' });
         AudioRecorder.current.startAsync()
-        setRecordingInterval(setInterval(() => {
-            setRecordingDuration(prevDuration => prevDuration + 1000);
-        }, 1000));
     }
 
     const deleteRecording = async () => {
@@ -115,8 +110,8 @@ const Home = () => {
 
     const PlayRecordedAudio = async () => {
         try {
-            console.log('\nplayFile', recordedURI);
             AudioPlayer.current = new Audio.Sound()
+            AudioPlayer.current.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
             await AudioPlayer.current.loadAsync({ uri: recordedURI }, {}, true);
 
             // Get Player Status
@@ -147,12 +142,26 @@ const Home = () => {
         } catch (error) { }
     };
 
+    const onPlaybackStatusUpdate = (status) => {
+        setPositionMillis(status.positionMillis)
+
+        if (status.positionMillis == status.playableDurationMillis) {
+            setIsPlaying(false)
+        }
+    }
+
+    const onRecordingStatusUpdate = (status) => {
+        setRecordingDuration(status.durationMillis)
+    }
+
 
     const getDurationFormatted = (millis) => {
+        if (!millis) return '00:00'
         const minutes = millis / 1000 / 60
-        const minutesDisplay = Math.floor(minutes)
+        let minutesDisplay = Math.floor(minutes)
         const seconds = Math.round((minutes - minutesDisplay) * 60)
         const secondsDisplay = seconds < 10 ? `0${seconds}` : seconds
+        minutesDisplay = minutesDisplay < 10 ? '0' + minutesDisplay : minutesDisplay
         return `${minutesDisplay}:${secondsDisplay}`
     }
 
@@ -160,16 +169,16 @@ const Home = () => {
         <View style={styles.container}>
             <Text>Help</Text>
 
-            <View style={styles.recordingButton}>
+            <View style={styles.recordingView}>
                 {isRecording ? (
                     <>
-                        <TouchableOpacity onPress={deleteRecording} style={[styles.deleteIcon]}>
+                        <TouchableOpacity onPress={deleteRecording} style={[styles.deleteButton]}>
                             <Ionicons name="trash" size={26} color="#999" />
                         </TouchableOpacity>
 
                         {isReadyToSend ? (
                             <>
-                                <TouchableOpacity onPress={isPlaying ? StopPlaying : PlayRecordedAudio} style={[styles.sendIcon, isPlaying ? styles.stopPlayingBtn : styles.playBtn]}>
+                                <TouchableOpacity onPress={isPlaying ? StopPlaying : PlayRecordedAudio} style={[styles.sendButton, isPlaying ? styles.stopPlayingButton : styles.playButton]}>
                                     {isPlaying ? (
                                         <Ionicons name="stop" size={26} color="#fff" />
                                     ) : (
@@ -179,7 +188,7 @@ const Home = () => {
 
 
                                 <View style={styles.durationContainer}>
-                                    <Text style={styles.durationText}>{lastRecording.duration}</Text>
+                                    <Text style={styles.durationText}>{getDurationFormatted(isPlaying ? positionMillis : playableDurationMillis)}</Text>
                                 </View>
                             </>
                         ) : (
@@ -193,7 +202,7 @@ const Home = () => {
                         )}
 
                         {!isReadyToSend &&
-                            <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingIcon1, isRecording && styles.recordingActive]}>
+                            <TouchableOpacity onPress={isPaused ? resumeRecording : pauseRecording} style={[styles.recordingButton1, isRecording && styles.recordingActive]}>
                                 {isPaused ? (
                                     <Ionicons name="mic-sharp" size={26} color="#fff" />
                                 ) : (
@@ -202,12 +211,12 @@ const Home = () => {
                             </TouchableOpacity>
                         }
 
-                        <TouchableOpacity onPress={sendRecording} style={[styles.sendIcon]}>
+                        <TouchableOpacity onPress={sendRecording} style={[styles.sendButton]}>
                             <Ionicons name="send" size={26} color="#fff" />
                         </TouchableOpacity>
                     </>
                 ) : (
-                    <TouchableOpacity onPress={isRecording ? pauseRecording : startRecording} style={[styles.recordingIcon, isRecording && styles.recordingActive]}>
+                    <TouchableOpacity onPress={isRecording ? pauseRecording : startRecording} style={[styles.recordingButton]}>
                         <Ionicons name="mic-sharp" size={26} color="#fff" />
                     </TouchableOpacity>
                 )}
@@ -223,7 +232,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         paddingVertical: 32,
     },
-    recordingButton: {
+    recordingView: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -232,15 +241,15 @@ const styles = StyleSheet.create({
         padding: 10,
         elevation: 2,
     },
-    recordingIcon: {
-        backgroundColor: '#999',
+    recordingButton: {
+        backgroundColor: '#f00',
         borderRadius: 50,
         width: 46,
         height: 46,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    recordingIcon1: {
+    recordingButton1: {
         backgroundColor: '#999',
         borderRadius: 50,
         width: 46,
@@ -252,7 +261,7 @@ const styles = StyleSheet.create({
     recordingActive: {
         backgroundColor: '#f00',
     },
-    deleteIcon: {
+    deleteButton: {
         backgroundColor: '#fff',
         borderRadius: 50,
         width: 46,
@@ -261,7 +270,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginHorizontal: 5,
     },
-    sendIcon: {
+    sendButton: {
         backgroundColor: '#3cb371',
         borderRadius: 50,
         width: 46,
@@ -270,10 +279,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginHorizontal: 5,
     },
-    playBtn: {
+    playButton: {
         backgroundColor: '#3cb371'
     },
-    stopPlayingBtn: {
+    stopPlayingButton: {
         backgroundColor: '#f00'
     },
     durationContainer: {
