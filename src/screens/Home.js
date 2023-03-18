@@ -9,13 +9,10 @@ const Home = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [recording, setRecording] = useState()
     const [lastRecording, setLastRecording] = useState(null)
-    const [durationSeconds, setDurationSeconds] = useState(0);
-    const [duration, setDuration] = useState();
     const [isPaused, setIsPaused] = useState(false);
 
-    useEffect(() => {
-        // setDuration(getDurationFormatted(durationSeconds * 1000))
-    }, [])
+    const [recordingDuration, setRecordingDuration] = useState(0);
+    const [recordingInterval, setRecordingInterval] = useState(null);
 
     const startRecording = async () => {
         try {
@@ -33,6 +30,10 @@ const Home = () => {
 
                 setRecording(recording);
                 setIsRecording(true);
+                setRecordingDuration(0);
+                setRecordingInterval(setInterval(() => {
+                    setRecordingDuration(prevDuration => prevDuration + 1000);
+                }, 1000));
             } else {
                 Toast.show({
                     type: 'error',
@@ -49,6 +50,7 @@ const Home = () => {
     const stopRecording = async () => {
         setIsRecording(false);
         setRecording(undefined);
+        clearInterval(recordingInterval);
         await recording.stopAndUnloadAsync();
 
         const { sound, status } = await recording.createNewLoadedSoundAsync();
@@ -65,12 +67,16 @@ const Home = () => {
         setIsPaused(true)
         Toast.show({ type: 'success', text1: 'Recording', text2: 'paused' });
         recording.pauseAsync()
+        clearInterval(recordingInterval);
     };
 
     const resumeRecording = async () => {
         setIsPaused(false);
         Toast.show({ type: 'success', text1: 'Recording', text2: 'resume' });
         recording.startAsync()
+        setRecordingInterval(setInterval(() => {
+            setRecordingDuration(prevDuration => prevDuration + 1000);
+        }, 1000));
     }
 
     const deleteRecording = async () => {
@@ -86,7 +92,6 @@ const Home = () => {
 
     const sendRecording = async () => {
         setIsRecording(false);
-        setDuration(0);
 
         // Send recording logic here
     };
@@ -125,7 +130,7 @@ const Home = () => {
                         </TouchableOpacity>
 
                         <View style={styles.durationContainer}>
-                            <Text style={styles.durationText}>{duration}</Text>
+                            <Text style={styles.durationText}>{getDurationFormatted(recordingDuration)}</Text>
                         </View>
 
                         <TouchableOpacity onPress={sendRecording} style={[styles.sendIcon]}>
