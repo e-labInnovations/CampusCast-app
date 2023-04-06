@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import RecordingsView from '../components/RecordingView'
 import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
+import * as Sharing from 'expo-sharing';
 
 const chatsData = [
     { id: 1, name: 'ECE 3rd Years', message: 'Anu Assis: Assignment', time: '12:00 PM', image: require('../../assets/images/man.png') },
@@ -48,7 +49,7 @@ const ChatList = () => {
         setAudioURI('')
     }
 
-    const handleSendButton = () => {
+    const handleSendButton = async () => {
         console.log('\nselected items: ', selectedItems);
         console.log('msg Title: ', msgNote);
         console.log('Audio: ', audioURI);
@@ -66,10 +67,17 @@ const ChatList = () => {
                 text2: 'Announcement note is missing'
             });
         } else {
-            setRedayToSelect(false)
-            setAudioURI('')
-            setSelectedItems([]);
-            setMsgNote('')
+            try {
+                await Sharing.shareAsync(audioURI);
+                setRedayToSelect(false)
+                setAudioURI('')
+                setSelectedItems([]);
+                setMsgNote('')
+            } catch (error) {
+                // Error handling
+            }
+
+
         }
 
     }

@@ -6,6 +6,7 @@ import Home from './src/screens/Home';
 import ChatList from './src/screens/ChatList'
 import ChatPage from './src/screens/ChatPage'
 import Toast from 'react-native-toast-message';
+import Login from './src/screens/Login'
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +15,7 @@ function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Home" component={ChatList} />
+        <Stack.Screen name="Login" options={{ headerShown: false}} component={Login} />
         <Stack.Screen name="ChatPage" component={ChatPage} />
         <Stack.Screen name="Chat" component={ChatList} />
       </Stack.Navigator>
