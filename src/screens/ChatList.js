@@ -3,9 +3,11 @@ import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, TextInput } 
 import Card from '../components/Card';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import RecordingsView from '../components/RecordingView'
+import AnnouncementDetailsModal from '../components/AnnouncementDetailsModal';
 import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
+import DateTimePickerAndroid from '@react-native-community/datetimepicker';
 
 const chatsData = [
     { id: 1, name: 'ECE 3rd Years', message: 'Anu Assis: Assignment', time: '12:00 PM', image: require('../../assets/images/man.png') },
@@ -26,7 +28,9 @@ const chatsData = [
 const ChatList = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [redayToSelect, setRedayToSelect] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [msgNote, setMsgNote] = useState("");
+    const [msgTime, setMsgTime] = useState(new Date());
     const [audioURI, setAudioURI] = useState("");
 
     const handleSelectItem = (id) => {
@@ -82,6 +86,26 @@ const ChatList = () => {
 
     }
 
+    const dateTimeChange = (event, selectedDate) => {
+        const currentDate = selectedDate;
+        setMsgTime(currentDate);
+    };
+    const showMode = (currentMode) => {
+        DateTimePickerAndroid.open({
+            value: date,
+            onChange,
+            mode: currentMode,
+            is24Hour: true,
+        });
+    };
+    const showDatepicker = () => {
+        showMode('date');
+    };
+
+    const showTimepicker = () => {
+        showMode('time');
+    };
+
     const renderChatItem = ({ item }) => (
         <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item.id); else console.log(item.id) }}>
             <Card style={styles.card}>
@@ -132,7 +156,7 @@ const ChatList = () => {
                             style={styles.msgNoteInput}
                         />
 
-                        <TouchableOpacity onPress={handleSendButton} style={[styles.sendButton]}>
+                        <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
                             <Ionicons name="send" size={26} color="#fff" />
                         </TouchableOpacity>
                     </View>
@@ -142,6 +166,7 @@ const ChatList = () => {
                     <RecordingsView handleSend={handleSendAudio} />
                 </View>
             )}
+            <AnnouncementDetailsModal showModal={showModal} />
         </View>
     );
 };
