@@ -149,8 +149,6 @@ const RecordingsView = ({ handleSend }) => {
             setIsPlaying(false)
             setPositionMillis(0)
         }
-
-        console.log(status);
     }
 
     const onRecordingStatusUpdate = (status) => {

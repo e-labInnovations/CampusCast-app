@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import Card from '../components/Card';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -8,25 +8,9 @@ import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
 import DateTimePickerAndroid from '@react-native-community/datetimepicker';
-import { FieldValue, addDoc, collection } from 'firebase/firestore';
+import { FieldValue, addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { FIREBASE_DB, FIREBASE_STORAGE } from '../../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-
-const chatsData = [
-    { id: 1, name: 'ECE 3rd Years', message: 'Anu Assis: Assignment', time: '12:00 PM', image: require('../../assets/images/man.png') },
-    { id: 2, name: '4th Years', message: 'Tester: Test announcement', time: '11:30 AM', image: require('../../assets/images/man.png') },
-    { id: 3, name: 'ECE', message: 'You: test', time: '10:45 AM', image: require('../../assets/images/man.png') },
-    { id: 4, name: '1st Years', message: 'Biju: Parent\'s meeting', time: '9:15 AM', image: require('../../assets/images/man.png') },
-    { id: 5, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 6, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 7, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 8, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 9, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 10, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 11, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 12, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-    { id: 13, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
-];
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -35,13 +19,54 @@ const ChatList = ({ navigation }) => {
     const [msgNote, setMsgNote] = useState("");
     const [msgTime, setMsgTime] = useState(new Date());
     const [audioURI, setAudioURI] = useState("");
+    const [classrooms, setClassrooms] = useState([])
+    const [groups, setGoups] = useState([])
+    const [chatItems, setChatItems] = useState([])
 
-    const handleSelectItem = (id) => {
-        const alreadySelected = selectedItems.includes(id);
+    useEffect(() => {
+        const classroomsRef = collection(FIREBASE_DB, 'devices');
+        const classroomsSubscriber = onSnapshot(classroomsRef, {
+            next: (snapshot) => {
+                const _classrooms = []
+                snapshot.docs.forEach(doc => {
+                    let _classroom = doc.data()
+                    _classroom.id = doc.id
+                    _classroom.type = 'classroom'
+                    _classroom.name = `${_classroom.classroomName} (${_classroom.classroomCode})`
+                    _classrooms.push(_classroom)
+                })
+
+                setClassrooms(_classrooms)
+            }
+        })
+        
+        const groupsRef = collection(FIREBASE_DB, 'groups');
+        const groupsSubscriber = onSnapshot(groupsRef, {
+            next: (snapshot) => {
+                const _groups = []
+                snapshot.docs.forEach(doc => {
+                    let _group = doc.data()
+                    _group.id = doc.id
+                    _group.type = 'group'
+                    _group.image = `https://ui-avatars.com/api/?name=${_group.name}&background=random&color=fff&length=3&rounded=true`
+                    _groups.push(_group)
+                })
+                
+                setGoups(_groups)
+            }
+        })
+    }, [])
+
+    useEffect(() => {
+        setChatItems(groups.concat(classrooms))
+    }, [groups, classrooms])
+
+    const handleSelectItem = (item) => {
+        const alreadySelected = selectedItems.includes(item);
         if (alreadySelected) {
-            setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
+            setSelectedItems(selectedItems.filter((_item) => _item.id !== item.id));
         } else {
-            setSelectedItems([...selectedItems, id]);
+            setSelectedItems([...selectedItems, item]);
         }
     };
 
@@ -75,18 +100,12 @@ const ChatList = ({ navigation }) => {
             });
         } else {
             try {
-                // await Sharing.shareAsync(audioURI);
-
-                //Firebase
-                // const doc = addDoc(collection(FIREBASE_DB, 'todos'), {
-                //     audioUrl: audioURI
-                // })
-                // console.log("🚀 ~ file: ChatList.js:81 ~ handleSendButton ~ doc:", doc)
-
-                uploadFile(
-                    audioURI,
-                    'myFile.m4a'
-                );
+                function generateRandomId() {
+                    const randomString = Math.random().toString(36).substr(2, 5);
+                    const timestamp = Date.now().toString().substr(-5);
+                    return randomString + timestamp;
+                  }
+                uploadFile(audioURI, generateRandomId());
 
                 setRedayToSelect(false)
                 setAudioURI('')
@@ -105,14 +124,13 @@ const ChatList = ({ navigation }) => {
         try {
             const response = await fetch(fileUri);
             const blob = await response.blob();
-            const announcementRef = ref(FIREBASE_STORAGE, `announcements/test.m4a`)
-            // uploadBytes(announcementRef, blob).then(() => {
-            //     console.log('img uploaded');
-            // })
+            const announcementRef = ref(FIREBASE_STORAGE, `announcements/${fileName}`)
             const announcementTask = await uploadBytes(announcementRef, blob);
 
             const downloadUrl = await getDownloadURL(announcementRef);
-            console.log('File uploaded successfully. Download URL:', downloadUrl);
+            
+            const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
+            const recipientsGroups = selectedItems.filter(item => item.type == 'group').map(item => item.id)
 
             const doc = addDoc(collection(FIREBASE_DB, 'test_announcements'), {
                 audioUrl: downloadUrl,
@@ -120,15 +138,14 @@ const ChatList = ({ navigation }) => {
                 announcementTime: msgTime,
                 isSend: false,
                 note: msgNote,
-                playedInClassrooms: [],
+                playedInClassrooms: [], 
                 publishedBy: "user001",
                 recipients: {
-                    classroomIds: ['2f3s3YNWRc5d4dUT0ZR8'],
-                    groupsIds: []
+                    classroomIds: recipientsClassrooms,
+                    groupsIds: recipientsGroups
                 }
 
             })
-            console.log("🚀 ~ file: ChatList.js:131 ~ doc ~ doc:", doc)
         } catch (error) {
             console.error('Error uploading file:', error);
             return null;
@@ -158,11 +175,11 @@ const ChatList = ({ navigation }) => {
     };
 
     const renderChatItem = ({ item }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item.id); else navigation.navigate('ChatPage') }}>
+        <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item); else navigation.navigate('ChatPage', {chatItem: item}) }}>
             <Card style={styles.card}>
                 <View style={styles.rowView}>
                     <View style={[styles.iconView]}>
-                        <Image source={item.image} style={styles.chatImage} />
+                        <Image source={{ uri: item.image }} style={styles.chatImage} />
                     </View>
                     <View>
                         <Text style={styles.chatName}>{item.name}</Text>
@@ -170,13 +187,13 @@ const ChatList = ({ navigation }) => {
                     </View>
                     <View style={styles.timeView}>
                         <Text style={styles.chatTime}>{item.time}</Text>
-                        <Ionicons name='ios-checkmark-circle' size={24} color='gray' />
+                        {item.lastAnnouncementSend?<Ionicons name='ios-checkmark-circle' size={24} color='gray' />:<Ionicons name='time' size={24} color='gray' />}
                     </View>
                     {redayToSelect && (
                         <Checkbox
-                            value={selectedItems.includes(item.id)}
-                            onValueChange={() => handleSelectItem(item.id)}
-                            color={selectedItems.includes(item.id) ? '#4630EB' : undefined}
+                            value={selectedItems.includes(item)}
+                            onValueChange={() => handleSelectItem(item)}
+                            color={selectedItems.includes(item) ? '#4630EB' : undefined}
                         />
                     )}
                 </View>
@@ -187,7 +204,7 @@ const ChatList = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <FlatList
-                data={chatsData}
+                data={chatItems}
                 keyExtractor={item => item.id.toString()}
                 renderItem={renderChatItem}
             />

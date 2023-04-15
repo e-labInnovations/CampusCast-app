@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -20,7 +20,8 @@ const audioMessages = [
   },
 ];
 
-const WhatsAppAudioChatPage = () => {
+const ChatPage = ({ navigation, route }) => {
+  const { chatItem } = route.params;
   const [sound, setSound] = useState(null);
   const [playingMessageId, setPlayingMessageId] = useState(null);
 
@@ -88,15 +89,15 @@ const WhatsAppAudioChatPage = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.userInfoContainer}>
           <Image
             style={styles.userAvatar}
-            source={{ uri: 'https://i.pravatar.cc/150?img=1' }}
+            source={{ uri: chatItem.image }}
           />
-          <Text style={styles.userName}>John</Text>
+          <Text style={styles.userName}>{chatItem.name}</Text>
         </View>
         <TouchableOpacity style={styles.optionsButton}>
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: '#ededed',
+      marginTop:StatusBar.currentHeight
     },
     header: {
       backgroundColor: '#075E54',
@@ -170,4 +172,4 @@ const styles = StyleSheet.create({
     audioDurationText: {},
   });
 
-export default WhatsAppAudioChatPage;
+export default ChatPage;
