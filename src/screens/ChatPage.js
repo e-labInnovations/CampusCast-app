@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -60,7 +60,7 @@ const WhatsAppAudioChatPage = () => {
 
   const renderAudioMessage = (message) => {
     return (
-      <View style={styles.audioMessageContainer}>
+      <View style={styles.audioMessageContainer} key={message.id}>
         <TouchableOpacity
           style={styles.audioButton}
           onPress={() => {
@@ -86,7 +86,7 @@ const WhatsAppAudioChatPage = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="white" />
@@ -105,7 +105,7 @@ const WhatsAppAudioChatPage = () => {
       <View style={styles.chatContainer}>
         {audioMessages.map((message) => renderAudioMessage(message))}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

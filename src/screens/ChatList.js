@@ -8,6 +8,9 @@ import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
 import DateTimePickerAndroid from '@react-native-community/datetimepicker';
+import { FieldValue, addDoc, collection } from 'firebase/firestore';
+import { FIREBASE_DB, FIREBASE_STORAGE } from '../../firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const chatsData = [
     { id: 1, name: 'ECE 3rd Years', message: 'Anu Assis: Assignment', time: '12:00 PM', image: require('../../assets/images/man.png') },
@@ -25,7 +28,7 @@ const chatsData = [
     { id: 13, name: 'All Batches', message: 'Principal: test', time: '8:30 AM', image: require('../../assets/images/man.png') },
 ];
 
-const ChatList = () => {
+const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [redayToSelect, setRedayToSelect] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -72,7 +75,19 @@ const ChatList = () => {
             });
         } else {
             try {
-                await Sharing.shareAsync(audioURI);
+                // await Sharing.shareAsync(audioURI);
+
+                //Firebase
+                // const doc = addDoc(collection(FIREBASE_DB, 'todos'), {
+                //     audioUrl: audioURI
+                // })
+                // console.log("🚀 ~ file: ChatList.js:81 ~ handleSendButton ~ doc:", doc)
+
+                uploadFile(
+                    audioURI,
+                    'myFile.m4a'
+                );
+
                 setRedayToSelect(false)
                 setAudioURI('')
                 setSelectedItems([]);
@@ -86,10 +101,45 @@ const ChatList = () => {
 
     }
 
+    const uploadFile = async (fileUri, fileName) => {
+        try {
+            const response = await fetch(fileUri);
+            const blob = await response.blob();
+            const announcementRef = ref(FIREBASE_STORAGE, `announcements/test.m4a`)
+            // uploadBytes(announcementRef, blob).then(() => {
+            //     console.log('img uploaded');
+            // })
+            const announcementTask = await uploadBytes(announcementRef, blob);
+
+            const downloadUrl = await getDownloadURL(announcementRef);
+            console.log('File uploaded successfully. Download URL:', downloadUrl);
+
+            const doc = addDoc(collection(FIREBASE_DB, 'test_announcements'), {
+                audioUrl: downloadUrl,
+                addedAt: new Date(),
+                announcementTime: msgTime,
+                isSend: false,
+                note: msgNote,
+                playedInClassrooms: [],
+                publishedBy: "user001",
+                recipients: {
+                    classroomIds: ['2f3s3YNWRc5d4dUT0ZR8'],
+                    groupsIds: []
+                }
+
+            })
+            console.log("🚀 ~ file: ChatList.js:131 ~ doc ~ doc:", doc)
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            return null;
+        }
+    };
+
     const dateTimeChange = (event, selectedDate) => {
         const currentDate = selectedDate;
         setMsgTime(currentDate);
     };
+
     const showMode = (currentMode) => {
         DateTimePickerAndroid.open({
             value: date,
@@ -98,6 +148,7 @@ const ChatList = () => {
             is24Hour: true,
         });
     };
+
     const showDatepicker = () => {
         showMode('date');
     };
@@ -107,7 +158,7 @@ const ChatList = () => {
     };
 
     const renderChatItem = ({ item }) => (
-        <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item.id); else console.log(item.id) }}>
+        <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item.id); else navigation.navigate('ChatPage') }}>
             <Card style={styles.card}>
                 <View style={styles.rowView}>
                     <View style={[styles.iconView]}>
