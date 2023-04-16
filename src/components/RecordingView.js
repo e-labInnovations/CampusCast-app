@@ -103,7 +103,7 @@ const RecordingsView = ({ handleSend }) => {
             await stopRecording()
             setIsReadyToSend(true)
         } else {
-            handleSend(recordedURI)
+            handleSend(recordedURI, getDurationFormatted(playableDurationMillis))
             setIsRecording(false);
         }
     };

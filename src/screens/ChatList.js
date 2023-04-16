@@ -19,6 +19,7 @@ const ChatList = ({ navigation }) => {
     const [msgNote, setMsgNote] = useState("");
     const [msgTime, setMsgTime] = useState(new Date());
     const [audioURI, setAudioURI] = useState("");
+    const [audioDuration, setAudioDuration] = useState("00:00")
     const [classrooms, setClassrooms] = useState([])
     const [groups, setGoups] = useState([])
     const [chatItems, setChatItems] = useState([])
@@ -70,9 +71,10 @@ const ChatList = ({ navigation }) => {
         }
     };
 
-    const handleSendAudio = (audioURI) => {
+    const handleSendAudio = (audioURI, audioDuration) => {
         setRedayToSelect(true)
         setAudioURI(audioURI);
+        setAudioDuration(audioDuration)
     }
 
     const handleCancelSelection = () => {
@@ -132,12 +134,13 @@ const ChatList = ({ navigation }) => {
             const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
             const recipientsGroups = selectedItems.filter(item => item.type == 'group').map(item => item.id)
 
-            const doc = addDoc(collection(FIREBASE_DB, 'test_announcements'), {
+            const doc = addDoc(collection(FIREBASE_DB, 'announcements'), {
                 audioUrl: downloadUrl,
                 addedAt: new Date(),
                 announcementTime: msgTime,
                 isSend: false,
                 note: msgNote,
+                duration:audioDuration,
                 playedInClassrooms: [], 
                 publishedBy: "user001",
                 recipients: {
