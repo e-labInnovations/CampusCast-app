@@ -187,7 +187,7 @@ const ChatPage = ({ navigation, route }) => {
           data={announcements}
           keyExtractor={item => item.id.toString()}
           renderItem={renderAnnouncements}
-          initialScrollIndex={announcements.length - 1}
+          // initialScrollIndex={announcements.length - 1}
         />
         {/* {announcements.map((announcement) => renderAnnouncements(announcement))} */}
       </View>
