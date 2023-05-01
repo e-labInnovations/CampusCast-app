@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "227472355966",
+    "project_id": "campuscast-elabins",
+    "storage_bucket": "campuscast-elabins.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227472355966:android:2477938479dba3a7665e2f",
+        "android_client_info": {
+          "package_name": "com.elabinnovations.campuscast"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227472355966-rblboddapa9v475ej1dcj1fb6d90gm9g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elabinnovations.campuscast",
+            "certificate_hash": "524b33eb3b69999b2c617721251d2bf5ad670de1"
+          }
+        },
+        {
+          "client_id": "227472355966-svbhm4j4g80h8h8ru3sfrvt2ti0s5vjm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBORKEaXuXtXyX-PlLN_0hRg13VYl82V7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227472355966-dmuf94um2ckcun4slgkglrai1bugnkhk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

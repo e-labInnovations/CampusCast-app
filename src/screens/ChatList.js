@@ -7,7 +7,7 @@ import AnnouncementDetailsModal from '../components/AnnouncementDetailsModal';
 import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
-import DateTimePickerAndroid from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-date-picker'
 import { addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { FIREBASE_DB, FIREBASE_STORAGE } from '../../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -16,6 +16,7 @@ const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [redayToSelect, setRedayToSelect] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showDateModal, setDateShowModal] = useState(false);
     const [msgNote, setMsgNote] = useState("");
     const [msgTime, setMsgTime] = useState(new Date());
     const [audioURI, setAudioURI] = useState("");
@@ -157,21 +158,9 @@ const ChatList = ({ navigation }) => {
         setMsgTime(currentDate);
     };
 
-    const showMode = (currentMode) => {
-        DateTimePickerAndroid.open({
-            value: date,
-            onChange,
-            mode: currentMode,
-            is24Hour: true,
-        });
-    };
-
     const showDatepicker = () => {
-        showMode('date');
-    };
-
-    const showTimepicker = () => {
-        showMode('time');
+        console.log('Long press Test');
+        setDateShowModal(true)
     };
 
     const renderChatItem = ({ item }) => (
@@ -181,7 +170,7 @@ const ChatList = ({ navigation }) => {
                     <View style={[styles.iconView]}>
                         <Image source={{ uri: item.image }} style={styles.chatImage} />
                     </View>
-                    <View style={{ width: '70%'}}>
+                    <View style={{ width: '70%' }}>
                         <Text style={styles.chatName}>{item.name}</Text>
                         <Text style={styles.chatMessage} numberOfLines={1}>{item.message}</Text>
                     </View>
@@ -235,6 +224,19 @@ const ChatList = ({ navigation }) => {
                 </View>
             )}
             <AnnouncementDetailsModal showModal={showModal} />
+            <DatePicker
+                modal
+                open={showDateModal}
+                date={msgTime}
+                theme="light"
+                onConfirm={(date) => {
+                    setDateShowModal(false)
+                    setMsgTime(date)
+                }}
+                onCancel={() => {
+                    setDateShowModal(false)
+                }}
+            />
         </View>
     );
 };
