@@ -167,10 +167,11 @@ const ChatPage = ({ navigation, route }) => {
       </View>
       <View style={styles.chatContainer}>
         <FlatList
-          data={announcements}
+          inverted
+          data={[...announcements].reverse()}
+          // data={announcements}
           keyExtractor={item => item.id.toString()}
           renderItem={renderAnnouncements}
-        // initialScrollIndex={announcements.length - 1}
         />
         {/* {announcements.map((announcement) => renderAnnouncements(announcement))} */}
       </View>

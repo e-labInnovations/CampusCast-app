@@ -9,8 +9,7 @@ import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
 import DatePicker from 'react-native-date-picker'
 import firestore from '@react-native-firebase/firestore';
-import { FIREBASE_STORAGE } from '../../firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import storage from '@react-native-firebase/storage';
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -24,6 +23,7 @@ const ChatList = ({ navigation }) => {
     const [classrooms, setClassrooms] = useState([])
     const [groups, setGoups] = useState([])
     const [chatItems, setChatItems] = useState([])
+    const [isUploading, setIsUploading] = useState(false)
 
     useEffect(() => {
         const classroomsRef = firestore().collection('devices');
@@ -102,11 +102,6 @@ const ChatList = ({ navigation }) => {
                 }
                 setMsgTime(new Date())
                 uploadFile(audioURI, generateRandomId());
-
-                setRedayToSelect(false)
-                setAudioURI('')
-                setSelectedItems([]);
-                setMsgNote('')
             } catch (error) {
                 // Error handling
             }
@@ -118,38 +113,57 @@ const ChatList = ({ navigation }) => {
 
     const uploadFile = async (fileUri, fileName) => {
         try {
-            const response = await fetch(fileUri);
-            const blob = await response.blob();
-            const announcementRef = ref(FIREBASE_STORAGE, `announcements/${fileName}`)
-            const announcementTask = await uploadBytes(announcementRef, blob);
+            // const response = await fetch(fileUri);
+            // const blob = await response.blob();
+            const announcementRef = storage().ref(`announcements/${fileName}`)
+            const announcementTask = announcementRef.putFile(fileUri)
+            setIsUploading(true)
 
-            const downloadUrl = await getDownloadURL(announcementRef);
+            announcementTask.on('state_changed', taskSnapshot => {
+                console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
+            });
 
-            const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
-            const recipientsGroups = selectedItems.filter(item => item.type == 'group').map(item => item.id)
+            announcementTask.then(async () => {
+                console.log('Udio uploaded to the bucket!');
+                const downloadUrl = await announcementRef.getDownloadURL();
 
-            firestore()
-                .collection('announcements')
-                .add({
-                    audioUrl: downloadUrl,
-                    addedAt: new Date(),
-                    announcementTime: msgTime,
-                    isSend: false,
-                    note: msgNote,
-                    duration: audioDuration,
-                    playedInClassrooms: [],
-                    publishedBy: "user001",
-                    recipients: {
-                        classroomIds: recipientsClassrooms,
-                        groupsIds: recipientsGroups
-                    }
+                const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
+                const recipientsGroups = selectedItems.filter(item => item.type == 'group').map(item => item.id)
 
-                })
-                .then(() => {
-                  console.log('Announcement added!');
-                });
+                firestore()
+                    .collection('announcements')
+                    .add({
+                        audioUrl: downloadUrl,
+                        addedAt: new Date(),
+                        announcementTime: msgTime,
+                        isSend: false,
+                        note: msgNote,
+                        duration: audioDuration,
+                        playedInClassrooms: [],
+                        publishedBy: "user001",
+                        recipients: {
+                            classroomIds: recipientsClassrooms,
+                            groupsIds: recipientsGroups
+                        }
+
+                    })
+                    .then(() => {
+                        console.log('Announcement added!');
+                        setIsUploading(false)
+                        setRedayToSelect(false)
+                        setAudioURI('')
+                        setSelectedItems([]);
+                        setMsgNote('')
+                    });
+            });
+
         } catch (error) {
             console.error('Error uploading file:', error);
+            setIsUploading(false)
+            setRedayToSelect(false)
+            setAudioURI('')
+            setSelectedItems([]);
+            setMsgNote('')
             return null;
         }
     };
@@ -215,7 +229,10 @@ const ChatList = ({ navigation }) => {
                         />
 
                         <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
-                            <Ionicons name="send" size={26} color="#fff" />
+                            {isUploading?
+                            <Ionicons name="cloud-upload" size={26} color="#fff" />
+                            :<Ionicons name="send" size={26} color="#fff" />
+                            }
                         </TouchableOpacity>
                     </View>
                 </View>
