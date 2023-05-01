@@ -3,8 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, StatusBa
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
-import { where, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { FIREBASE_DB } from '../../firebaseConfig';
+import firestore from '@react-native-firebase/firestore';
 
 const ChatPage = ({ navigation, route }) => {
   const { chatItem } = route.params;
@@ -15,14 +14,10 @@ const ChatPage = ({ navigation, route }) => {
   useEffect(() => {
     if (chatItem.type == 'group') {
       const groupId = chatItem.id;
-      const announcementsRef = collection(FIREBASE_DB, 'announcements');
-      const _query = query(
-        announcementsRef, where('recipients.groupsIds', 'array-contains', groupId),
-        orderBy('announcementTime', 'asc')
-      );
-
-      const announcementsSubscriber = onSnapshot(_query, {
-        next: (snapshot) => {
+      const announcementsRef = firestore().collection('announcements');
+      announcementsRef.where('recipients.groupsIds', 'array-contains', groupId)
+        .orderBy('announcementTime', 'asc')
+        .onSnapshot(snapshot => {
           const _announcements = []
           snapshot.docs.forEach(doc => {
             let _announcement = doc.data()
@@ -31,26 +26,18 @@ const ChatPage = ({ navigation, route }) => {
           })
 
           setAnnouncements(_announcements)
-        },
-        error: (error) => {
-          console.error('Error fetching announcements:', error)
-        }
-      })
+        })
 
     } else if (chatItem.type == 'classroom') {
       const classroomId = chatItem.id;
       const groupIds = chatItem.groupsIds
-      const announcementsRef = collection(FIREBASE_DB, 'announcements');
-      const _query = query(
-        announcementsRef,
-        where('recipients.classroomIds', 'array-contains', classroomId),
-        // where('recipients.groupsIds', 'in', groupIds),
-        // where('recipients.groupsIds', 'array-contains-any', groupIds),
-        orderBy('announcementTime', 'asc')
-      );
-
-      const announcementsSubscriber = onSnapshot(_query, {
-        next: (snapshot) => {
+      const announcementsRef = firestore().collection('announcements');
+      const announcementsSubscriber = announcementsRef
+        .where('recipients.classroomIds', 'array-contains', classroomId)
+        // .where('recipients.groupsIds', 'in', groupIds)
+        // .where('recipients.groupsIds', 'array-contains-any', groupIds)
+        .orderBy('announcementTime', 'asc')
+        .onSnapshot(snapshot => {
           const _announcements = []
           snapshot.docs.forEach(doc => {
             let _announcement = doc.data()
@@ -59,11 +46,7 @@ const ChatPage = ({ navigation, route }) => {
           })
 
           setAnnouncements(_announcements)
-        },
-        error: (error) => {
-          console.error('Error fetching announcements:', error)
-        }
-      })
+        })
     }
 
   }, [])
@@ -187,7 +170,7 @@ const ChatPage = ({ navigation, route }) => {
           data={announcements}
           keyExtractor={item => item.id.toString()}
           renderItem={renderAnnouncements}
-          // initialScrollIndex={announcements.length - 1}
+        // initialScrollIndex={announcements.length - 1}
         />
         {/* {announcements.map((announcement) => renderAnnouncements(announcement))} */}
       </View>

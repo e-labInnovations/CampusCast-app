@@ -8,8 +8,8 @@ import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import * as Sharing from 'expo-sharing';
 import DatePicker from 'react-native-date-picker'
-import { addDoc, collection, onSnapshot } from 'firebase/firestore';
-import { FIREBASE_DB, FIREBASE_STORAGE } from '../../firebaseConfig';
+import firestore from '@react-native-firebase/firestore';
+import { FIREBASE_STORAGE } from '../../firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const ChatList = ({ navigation }) => {
@@ -26,36 +26,32 @@ const ChatList = ({ navigation }) => {
     const [chatItems, setChatItems] = useState([])
 
     useEffect(() => {
-        const classroomsRef = collection(FIREBASE_DB, 'devices');
-        const classroomsSubscriber = onSnapshot(classroomsRef, {
-            next: (snapshot) => {
-                const _classrooms = []
-                snapshot.docs.forEach(doc => {
-                    let _classroom = doc.data()
-                    _classroom.id = doc.id
-                    _classroom.type = 'classroom'
-                    _classroom.name = `${_classroom.classroomName} (${_classroom.classroomCode})`
-                    _classrooms.push(_classroom)
-                })
+        const classroomsRef = firestore().collection('devices');
+        const classroomsSubscriber = classroomsRef.onSnapshot(snapshot => {
+            const _classrooms = []
+            snapshot.docs.forEach(doc => {
+                let _classroom = doc.data()
+                _classroom.id = doc.id
+                _classroom.type = 'classroom'
+                _classroom.name = `${_classroom.classroomName} (${_classroom.classroomCode})`
+                _classrooms.push(_classroom)
+            })
 
-                setClassrooms(_classrooms)
-            }
-        })
+            setClassrooms(_classrooms)
+        });
 
-        const groupsRef = collection(FIREBASE_DB, 'groups');
-        const groupsSubscriber = onSnapshot(groupsRef, {
-            next: (snapshot) => {
-                const _groups = []
-                snapshot.docs.forEach(doc => {
-                    let _group = doc.data()
-                    _group.id = doc.id
-                    _group.type = 'group'
-                    _group.image = `https://ui-avatars.com/api/?name=${_group.name}&background=random&color=fff&length=3&rounded=true`
-                    _groups.push(_group)
-                })
+        const groupsRef = firestore().collection('groups');
+        const groupsSubscriber = groupsRef.onSnapshot(snapshot => {
+            const _groups = []
+            snapshot.docs.forEach(doc => {
+                let _group = doc.data()
+                _group.id = doc.id
+                _group.type = 'group'
+                _group.image = `https://ui-avatars.com/api/?name=${_group.name}&background=random&color=fff&length=3&rounded=true`
+                _groups.push(_group)
+            })
 
-                setGoups(_groups)
-            }
+            setGoups(_groups)
         })
     }, [])
 
@@ -132,21 +128,26 @@ const ChatList = ({ navigation }) => {
             const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
             const recipientsGroups = selectedItems.filter(item => item.type == 'group').map(item => item.id)
 
-            const doc = addDoc(collection(FIREBASE_DB, 'announcements'), {
-                audioUrl: downloadUrl,
-                addedAt: new Date(),
-                announcementTime: msgTime,
-                isSend: false,
-                note: msgNote,
-                duration: audioDuration,
-                playedInClassrooms: [],
-                publishedBy: "user001",
-                recipients: {
-                    classroomIds: recipientsClassrooms,
-                    groupsIds: recipientsGroups
-                }
+            firestore()
+                .collection('announcements')
+                .add({
+                    audioUrl: downloadUrl,
+                    addedAt: new Date(),
+                    announcementTime: msgTime,
+                    isSend: false,
+                    note: msgNote,
+                    duration: audioDuration,
+                    playedInClassrooms: [],
+                    publishedBy: "user001",
+                    recipients: {
+                        classroomIds: recipientsClassrooms,
+                        groupsIds: recipientsGroups
+                    }
 
-            })
+                })
+                .then(() => {
+                  console.log('Announcement added!');
+                });
         } catch (error) {
             console.error('Error uploading file:', error);
             return null;
