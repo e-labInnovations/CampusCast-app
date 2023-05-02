@@ -1,13 +1,55 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { AntDesign } from '@expo/vector-icons'; //import Google icon from vector icons library
+import { AntDesign } from '@expo/vector-icons';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 
 const Login = () => {
+    const [initializing, setInitializing] = useState(true);
+    const [user, setUser] = useState();
+  
+    GoogleSignin.configure({
+      webClientId: '227472355966-svbhm4j4g80h8h8ru3sfrvt2ti0s5vjm.apps.googleusercontent.com',
+    });
+  
+    // Handle user state changes
+    function onAuthStateChanged(user) {
+      setUser(user);
+      if (initializing) setInitializing(false);
+    }
+  
+    useEffect(() => {
+      const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+      return subscriber; // unsubscribe on unmount
+    }, []);
+  
+    const onGoogleButtonPress = async () => {
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      // Get the users ID token
+      const { idToken } = await GoogleSignin.signIn();
+  
+      // Create a Google credential with the token
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  
+      // Sign-in the user with the credential
+      // return auth().signInWithCredential(googleCredential);
+      const user_signin = auth().signInWithCredential(googleCredential);
+      user_signin.then(user => {
+        console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ user:", user)
+      }).catch(error => {
+        console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ error:", error)
+      })
+    }
+  
+    if (initializing) return null;
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.loginContainer}>
-                <TouchableOpacity style={styles.loginButton}>
+                    <Image source={require('../../assets/icon.png')} style={{width: 200, height: 200, marginBottom: 50}} />
+                <TouchableOpacity style={styles.loginButton} onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!'))}>
                     <AntDesign name="google" size={24} color="white" />
                     <Text style={styles.loginText}>Login with Google</Text>
                 </TouchableOpacity>

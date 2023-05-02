@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ededed',
-    marginTop: StatusBar.currentHeight
+    // marginTop: StatusBar.currentHeight
   },
   header: {
     backgroundColor: '#075E54',

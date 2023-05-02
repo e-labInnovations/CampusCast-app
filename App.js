@@ -1,7 +1,9 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 import Home from './src/screens/Home';
 import ChatList from './src/screens/ChatList'
 import ChatPage from './src/screens/ChatPage'
@@ -11,15 +13,41 @@ import Login from './src/screens/Login'
 const Stack = createNativeStackNavigator();
 
 function App() {
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState();
+
+  GoogleSignin.configure({
+    webClientId: '227472355966-svbhm4j4g80h8h8ru3sfrvt2ti0s5vjm.apps.googleusercontent.com',
+  });
+
+  // Handle user state changes
+  function onAuthStateChanged(user) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  if (initializing) return null;
+
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={ChatList} />
-        <Stack.Screen name="Login" options={{ headerShown: false}} component={Login} />
-        <Stack.Screen name="ChatPage" component={ChatPage} options={{ headerShown: false}} />
-        <Stack.Screen name="Chat" component={ChatList} />
-      </Stack.Navigator>
-        <Toast />
+      {!user ?
+        <Stack.Navigator>
+          <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
+        </Stack.Navigator>
+        :
+        <Stack.Navigator>
+          <Stack.Screen name="Home" options={{ headerShown: false }} component={ChatList} />
+          <Stack.Screen name="ChatPage" component={ChatPage} options={{ headerShown: false }} />
+          <Stack.Screen name="Chat" options={{ headerShown: false }} component={ChatList} />
+        </Stack.Navigator>
+
+      }
+      <Toast />
     </NavigationContainer>
   );
 }

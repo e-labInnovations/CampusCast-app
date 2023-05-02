@@ -207,6 +207,13 @@ const ChatList = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <Image source={require('../../assets/name.png')} style={styles.logoImage} />
+                <TouchableOpacity style={styles.optionsButton}>
+                    <Ionicons name="ellipsis-vertical" size={24} color="black" />
+                </TouchableOpacity>
+            </View>
+
             <FlatList
                 data={chatItems}
                 keyExtractor={item => item.id.toString()}
@@ -229,9 +236,9 @@ const ChatList = ({ navigation }) => {
                         />
 
                         <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
-                            {isUploading?
-                            <Ionicons name="cloud-upload" size={26} color="#fff" />
-                            :<Ionicons name="send" size={26} color="#fff" />
+                            {isUploading ?
+                                <Ionicons name="cloud-upload" size={26} color="#fff" />
+                                : <Ionicons name="send" size={26} color="#fff" />
                             }
                         </TouchableOpacity>
                     </View>
@@ -263,6 +270,27 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+        elevation: 2,
+    },
+    logoImage: {
+        height: 30,
+        width: 150,
+        resizeMode: 'contain',
     },
     chatItem: {
         backgroundColor: '#ffffff',
