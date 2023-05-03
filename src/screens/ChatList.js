@@ -29,6 +29,9 @@ const ChatList = ({ navigation }) => {
 
     useEffect(() => {
         const currentUser = auth().currentUser;
+        if(!currentUser) {
+            signOut()
+        }
         setCurrentUser(currentUser)
         
         const classroomsRef = firestore().collection('devices');
@@ -63,6 +66,15 @@ const ChatList = ({ navigation }) => {
     useEffect(() => {
         setChatItems(groups.concat(classrooms))
     }, [groups, classrooms])
+
+    const signOut = async () => {
+        try {
+            await GoogleSignin.revokeAccess()
+            auth().signOut().then(() => console.log('User signed out!'))
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const handleSelectItem = (item) => {
         const alreadySelected = selectedItems.includes(item);

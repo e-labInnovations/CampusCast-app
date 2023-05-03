@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar, FlatList } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, FlatList } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
@@ -185,22 +185,6 @@ const ChatPage = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
 
-      {/* <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <View style={styles.userInfoContainer}>
-          <Image
-            style={styles.userAvatar}
-            source={{ uri: chatItem.image }}
-          />
-          <Text style={styles.userName}>{chatItem.name}</Text>
-        </View>
-        <TouchableOpacity style={styles.optionsButton}>
-          <Ionicons name="ellipsis-vertical" size={24} color="white" />
-        </TouchableOpacity>
-      </View> */}
-
       <View style={styles.chatContainer}>
         <FlatList
           inverted
@@ -219,17 +203,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ededed',
-    // marginTop: StatusBar.currentHeight
-  },
-  header: {
-    backgroundColor: '#075E54',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    marginRight: 10,
   },
   userInfoContainer: {
     flexDirection: 'row',

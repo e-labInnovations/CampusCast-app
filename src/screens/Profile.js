@@ -4,11 +4,22 @@ import auth from '@react-native-firebase/auth';
 import CircleImage from '../components/CircleImage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+const Profile = () => {
 // get the currently signed-in user
 const currentUser = auth().currentUser;
+if(!currentUser) {
+    signOut()
+}
 const { uid, email, displayName, photoURL } = currentUser;
 
-const Profile = () => {
+const signOut = async () => {
+    try {
+        await GoogleSignin.revokeAccess()
+        auth().signOut().then(() => console.log('User signed out!'))
+    } catch (error) {
+        console.error(error);
+    }
+}
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.heading}>PROFILE</Text>
