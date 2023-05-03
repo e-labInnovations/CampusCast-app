@@ -10,6 +10,15 @@ import * as Sharing from 'expo-sharing';
 import DatePicker from 'react-native-date-picker'
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+import auth from '@react-native-firebase/auth';
+import {
+    Menu,
+    MenuProvider,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
+} from 'react-native-popup-menu';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -178,6 +187,15 @@ const ChatList = ({ navigation }) => {
         setDateShowModal(true)
     };
 
+    const signOut = async () => {
+        try {
+            await GoogleSignin.revokeAccess()
+            auth().signOut().then(() => console.log('User signed out!'))
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     const renderChatItem = ({ item }) => (
         <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item); else navigation.navigate('ChatPage', { chatItem: item }) }}>
             <Card style={styles.card}>
@@ -207,61 +225,74 @@ const ChatList = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Image source={require('../../assets/name.png')} style={styles.logoImage} />
-                <TouchableOpacity style={styles.optionsButton}>
-                    <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                </TouchableOpacity>
-            </View>
+            <MenuProvider>
+                <View style={styles.header}>
+                    <Image source={require('../../assets/name.png')} style={styles.logoImage} />
 
-            <FlatList
-                data={chatItems}
-                keyExtractor={item => item.id.toString()}
-                renderItem={renderChatItem}
-            />
+                    <Menu>
+                        <MenuTrigger>
+                            <Ionicons name="ellipsis-vertical" size={24} color="black" />
+                        </MenuTrigger>
+                        <MenuOptions>
+                            <MenuOption onSelect={() => alert('Settings')} text='Settings' customStyles={{ fontSize: 20 }} />
+                            <MenuOption onSelect={() => alert('New group')} text='New Group' />
+                            <MenuOption onSelect={signOut} text='Logout' />
+                        </MenuOptions>
+                    </Menu>
 
-            {redayToSelect ? (
-                <View style={styles.recordingViewContainer}>
-                    <View style={styles.sendView}>
-                        <TouchableOpacity onPress={handleCancelSelection} style={[styles.cancelButton]}>
-                            <Ionicons name="close" size={26} color="#fff" />
-                        </TouchableOpacity>
+                </View>
 
-                        <TextInput
-                            value={msgNote}
-                            onChangeText={(msgNote) => setMsgNote(msgNote)}
-                            placeholder={'Note: '}
-                            multiline={false}
-                            style={styles.msgNoteInput}
-                        />
+                <FlatList
+                    data={chatItems}
+                    keyExtractor={item => item.id.toString()}
+                    renderItem={renderChatItem}
+                />
 
-                        <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
-                            {isUploading ?
-                                <Ionicons name="cloud-upload" size={26} color="#fff" />
-                                : <Ionicons name="send" size={26} color="#fff" />
-                            }
-                        </TouchableOpacity>
+                {redayToSelect ? (
+                    <View style={styles.recordingViewContainer}>
+                        <View style={styles.sendView}>
+                            <TouchableOpacity onPress={handleCancelSelection} style={[styles.cancelButton]}>
+                                <Ionicons name="close" size={26} color="#fff" />
+                            </TouchableOpacity>
+
+                            <TextInput
+                                value={msgNote}
+                                onChangeText={(msgNote) => setMsgNote(msgNote)}
+                                placeholder={'Note: '}
+                                multiline={false}
+                                style={styles.msgNoteInput}
+                            />
+
+                            <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
+                                {isUploading ?
+                                    <Ionicons name="cloud-upload" size={26} color="#fff" />
+                                    : <Ionicons name="send" size={26} color="#fff" />
+                                }
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
-            ) : (
-                <View style={styles.recordingViewContainer}>
-                    <RecordingsView handleSend={handleSendAudio} />
-                </View>
-            )}
-            <AnnouncementDetailsModal showModal={showModal} />
-            <DatePicker
-                modal
-                open={showDateModal}
-                date={msgTime}
-                theme="light"
-                onConfirm={(date) => {
-                    setDateShowModal(false)
-                    setMsgTime(date)
-                }}
-                onCancel={() => {
-                    setDateShowModal(false)
-                }}
-            />
+                ) : (
+                    <View style={styles.recordingViewContainer}>
+                        <RecordingsView handleSend={handleSendAudio} />
+                    </View>
+                )}
+                <AnnouncementDetailsModal showModal={showModal} />
+                <DatePicker
+                    modal
+                    open={showDateModal}
+                    date={msgTime}
+                    theme="light"
+                    onConfirm={(date) => {
+                        setDateShowModal(false)
+                        setMsgTime(date)
+                    }}
+                    onCancel={() => {
+                        setDateShowModal(false)
+                    }}
+                />
+
+
+            </MenuProvider>
         </View>
     );
 };

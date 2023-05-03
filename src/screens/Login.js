@@ -34,13 +34,13 @@ const Login = () => {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
   
       // Sign-in the user with the credential
-      // return auth().signInWithCredential(googleCredential);
-      const user_signin = auth().signInWithCredential(googleCredential);
-      user_signin.then(user => {
-        console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ user:", user)
-      }).catch(error => {
-        console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ error:", error)
-      })
+      return auth().signInWithCredential(googleCredential);
+      // const user_signin = auth().signInWithCredential(googleCredential);
+      // user_signin.then(user => {
+      //   console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ user:", user)
+      // }).catch(error => {
+      //   console.log("🚀 ~ file: App.js:49 ~ onGoogleButtonPress ~ error:", error)
+      // })
     }
   
     if (initializing) return null;
