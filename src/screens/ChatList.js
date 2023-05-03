@@ -11,6 +11,7 @@ import DatePicker from 'react-native-date-picker'
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
     Menu,
     MenuProvider,
@@ -18,7 +19,6 @@ import {
     MenuOption,
     MenuTrigger,
 } from 'react-native-popup-menu';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -225,22 +225,6 @@ const ChatList = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <MenuProvider>
-                <View style={styles.header}>
-                    <Image source={require('../../assets/name.png')} style={styles.logoImage} />
-
-                    <Menu>
-                        <MenuTrigger>
-                            <Ionicons name="ellipsis-vertical" size={24} color="black" />
-                        </MenuTrigger>
-                        <MenuOptions>
-                            <MenuOption onSelect={() => alert('Settings')} text='Settings' customStyles={{ fontSize: 20 }} />
-                            <MenuOption onSelect={() => alert('New group')} text='New Group' />
-                            <MenuOption onSelect={signOut} text='Logout' />
-                        </MenuOptions>
-                    </Menu>
-
-                </View>
 
                 <FlatList
                     data={chatItems}
@@ -290,9 +274,6 @@ const ChatList = ({ navigation }) => {
                         setDateShowModal(false)
                     }}
                 />
-
-
-            </MenuProvider>
         </View>
     );
 };
@@ -301,27 +282,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-        elevation: 2,
-    },
-    logoImage: {
-        height: 30,
-        width: 150,
-        resizeMode: 'contain',
     },
     chatItem: {
         backgroundColor: '#ffffff',

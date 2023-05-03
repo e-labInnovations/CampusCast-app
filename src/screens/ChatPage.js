@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, StatusBar, FlatList } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,6 +51,21 @@ const ChatPage = ({ navigation, route }) => {
 
   }, [])
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: null,
+      headerBackVisible: true,
+      headerLeft: () => {
+        return <View style={styles.userInfoContainer}>
+          <Image
+            style={styles.userAvatar}
+            source={{ uri: chatItem.image }}
+          />
+          <Text style={styles.userName}>{chatItem.name}</Text>
+        </View>
+      },
+    })
+  }, [chatItem])
 
   useEffect(() => {
     return sound
@@ -150,7 +165,8 @@ const ChatPage = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+
+      {/* <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
@@ -164,7 +180,8 @@ const ChatPage = ({ navigation, route }) => {
         <TouchableOpacity style={styles.optionsButton}>
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
         </TouchableOpacity>
-      </View>
+      </View> */}
+
       <View style={styles.chatContainer}>
         <FlatList
           inverted
@@ -209,7 +226,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    color: 'white',
+    color: 'black',
   },
   optionsButton: {},
   chatContainer: {

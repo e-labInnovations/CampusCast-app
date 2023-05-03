@@ -9,6 +9,7 @@ import ChatList from './src/screens/ChatList'
 import ChatPage from './src/screens/ChatPage'
 import Toast from 'react-native-toast-message';
 import Login from './src/screens/Login'
+import { MenuProvider } from 'react-native-popup-menu';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,21 +35,23 @@ function App() {
   if (initializing) return null;
 
   return (
-    <NavigationContainer>
-      {!user ?
-        <Stack.Navigator>
-          <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
-        </Stack.Navigator>
-        :
-        <Stack.Navigator>
-          <Stack.Screen name="Home" options={{ headerShown: false }} component={ChatList} />
-          <Stack.Screen name="ChatPage" component={ChatPage} options={{ headerShown: false }} />
-          <Stack.Screen name="Chat" options={{ headerShown: false }} component={ChatList} />
-        </Stack.Navigator>
+    <MenuProvider>
+      <NavigationContainer>
+        {!user ?
+          <Stack.Navigator>
+            <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
+          </Stack.Navigator>
+          :
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="ChatPage" component={ChatPage} />
+            {/* <Stack.Screen name="Chat" options={{ headerShown: false }} component={ChatList} /> */}
+          </Stack.Navigator>
 
-      }
-      <Toast />
-    </NavigationContainer>
+        }
+        <Toast />
+      </NavigationContainer>
+    </MenuProvider>
   );
 }
 
