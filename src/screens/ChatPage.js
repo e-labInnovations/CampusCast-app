@@ -6,6 +6,7 @@ import Slider from '@react-native-community/slider';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import CircleImage from '../components/CircleImage';
+import RecordingsView from '../components/RecordingView'
 import theme from '../theme';
 
 let themeMode = theme.themeMode
@@ -135,6 +136,11 @@ const ChatPage = ({ navigation, route }) => {
     return `${formattedHours}:${minutes} ${amPm}`;
   }
 
+  const handleSendAudio = (audioURI, audioDuration) => {
+    console.log("🚀 ~ file: ChatPage.js:139 ~ handleSendAudio ~ audioDuration:", audioDuration)
+    console.log("🚀 ~ file: ChatPage.js:139 ~ handleSendAudio ~ audioURI:", audioURI)
+  }
+
   const renderAnnouncements = ({ item }) => (
     <View style={[styles.announcementContainer, currentUser.uid == item.publishedBy.uid ? styles.announcementContainerYou : styles.announcementContainerOthers]}>
       <View>
@@ -198,8 +204,13 @@ const ChatPage = ({ navigation, route }) => {
           // data={announcements}
           keyExtractor={item => item.id.toString()}
           renderItem={renderAnnouncements}
+          // contentContainerStyle={{borderWidth: 2}}
+          ListHeaderComponent={<View style={{marginBottom: 75}}></View>}
         />
-        {/* {announcements.map((announcement) => renderAnnouncements(announcement))} */}
+
+        <View style={styles.recordingViewContainer}>
+          <RecordingsView handleSend={handleSendAudio} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -230,6 +241,7 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
     paddingHorizontal: 10,
+    // paddingBottom: 100
   },
   announcementContainer: {
     flexDirection: 'column',
@@ -296,7 +308,17 @@ const styles = StyleSheet.create({
   },
   announcementNote: {
     color: '#000'
-  }
+  },
+
+  recordingViewContainer: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // borderWidth: 1, // add border width
+    // borderColor: 'black' // add border color
+  },
 });
 
 export default ChatPage;
