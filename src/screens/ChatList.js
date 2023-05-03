@@ -230,6 +230,7 @@ const ChatList = ({ navigation }) => {
                     data={chatItems}
                     keyExtractor={item => item.id.toString()}
                     renderItem={renderChatItem}
+                    contentContainerStyle={{flexGrow: 1}}
                 />
 
                 {redayToSelect ? (

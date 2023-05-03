@@ -19,6 +19,7 @@ const Home = ({ navigation }) => {
     useLayoutEffect(() => {
         navigation.setOptions({
             title: null,
+            headerShadowVisible: false,
             headerLeft: () => {
                 return <Image source={require('../../assets/name.png')} style={styles.logoImage} />
             },
@@ -47,7 +48,24 @@ const Home = ({ navigation }) => {
     }
 
     return (
-        <Tab.Navigator>
+        <Tab.Navigator screenOptions={{
+            tabBarStyle: {
+                height: 30,
+                padding: 0,
+                margin: 0
+            },
+            tabBarItemStyle: {
+                flex: 1,
+                flexDirection: 'row',
+                marginTop: 'auto',
+                marginBottom: 'auto'
+
+            },
+            tabBarLabelStyle: {
+                marginTop: 'auto',
+                marginBottom: 'auto'
+            }
+        }}>
             <Tab.Screen
                 name="Chat"
                 component={ChatList}
@@ -61,7 +79,7 @@ const Home = ({ navigation }) => {
                 options={{
                     tabBarLabel: 'Exam Schedules'
                 }} />
-        </Tab.Navigator>
+        </Tab.Navigator >
     )
 }
 
