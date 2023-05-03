@@ -28,7 +28,16 @@ const Home = ({ navigation }) => {
                     <MenuTrigger>
                         <Ionicons name="ellipsis-vertical" size={24} color="black" />
                     </MenuTrigger>
-                    <MenuOptions>
+                    <MenuOptions customStyles={{
+                        optionsContainer: {
+                            borderRadius: 10,
+                            overflow: 'hidden',
+                        },
+                        optionWrapper: {
+                            padding: 10
+                        }
+                    }}>
+                        <MenuOption onSelect={() => navigation.navigate('Profile')} text='Profile' />
                         <MenuOption onSelect={() => alert('Settings')} text='Settings' customStyles={{ fontSize: 20 }} />
                         <MenuOption onSelect={() => alert('New group')} text='New Group' />
                         <MenuOption onSelect={signOut} text='Logout' />

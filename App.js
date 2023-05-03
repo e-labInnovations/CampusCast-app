@@ -10,6 +10,7 @@ import ChatPage from './src/screens/ChatPage'
 import Toast from 'react-native-toast-message';
 import Login from './src/screens/Login'
 import { MenuProvider } from 'react-native-popup-menu';
+import Profile from './src/screens/Profile';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +46,7 @@ function App() {
           <Stack.Navigator>
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="ChatPage" component={ChatPage} />
+            <Stack.Screen name="Profile" component={Profile} />
           </Stack.Navigator>
 
         }
