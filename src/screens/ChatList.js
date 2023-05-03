@@ -11,14 +11,6 @@ import DatePicker from 'react-native-date-picker'
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import {
-    Menu,
-    MenuProvider,
-    MenuOptions,
-    MenuOption,
-    MenuTrigger,
-} from 'react-native-popup-menu';
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -33,8 +25,12 @@ const ChatList = ({ navigation }) => {
     const [groups, setGoups] = useState([])
     const [chatItems, setChatItems] = useState([])
     const [isUploading, setIsUploading] = useState(false)
+    const [currentUser, setCurrentUser] = useState(null)
 
     useEffect(() => {
+        const currentUser = auth().currentUser;
+        setCurrentUser(currentUser)
+        
         const classroomsRef = firestore().collection('devices');
         const classroomsSubscriber = classroomsRef.onSnapshot(snapshot => {
             const _classrooms = []
@@ -149,7 +145,7 @@ const ChatList = ({ navigation }) => {
                         note: msgNote,
                         duration: audioDuration,
                         playedInClassrooms: [],
-                        publishedBy: "user001",
+                        publishedBy: currentUser.uid,
                         recipients: {
                             classroomIds: recipientsClassrooms,
                             groupsIds: recipientsGroups
@@ -186,15 +182,6 @@ const ChatList = ({ navigation }) => {
         console.log('Long press Test');
         setDateShowModal(true)
     };
-
-    const signOut = async () => {
-        try {
-            await GoogleSignin.revokeAccess()
-            auth().signOut().then(() => console.log('User signed out!'))
-        } catch (error) {
-            console.error(error);
-        }
-    }
 
     const renderChatItem = ({ item }) => (
         <TouchableOpacity style={styles.chatItem} onPress={() => { if (redayToSelect) handleSelectItem(item); else navigation.navigate('ChatPage', { chatItem: item }) }}>

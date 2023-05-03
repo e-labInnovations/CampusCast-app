@@ -4,50 +4,72 @@ import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import CircleImage from '../components/CircleImage';
 
 const ChatPage = ({ navigation, route }) => {
   const { chatItem } = route.params;
   const [sound, setSound] = useState(null);
   const [playingAnnouncementId, setPlayingAnnouncementId] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null)
+
 
   useEffect(() => {
-    if (chatItem.type == 'group') {
-      const groupId = chatItem.id;
-      const announcementsRef = firestore().collection('announcements');
-      announcementsRef.where('recipients.groupsIds', 'array-contains', groupId)
-        .orderBy('announcementTime', 'asc')
-        .onSnapshot(snapshot => {
-          const _announcements = []
-          snapshot.docs.forEach(doc => {
-            let _announcement = doc.data()
-            _announcement.id = doc.id
-            _announcements.push(_announcement)
-          })
+    const currentUser = auth().currentUser;
+    setCurrentUser(currentUser)
 
-          setAnnouncements(_announcements)
-        })
+    firestore()
+      .collection('users')
+      .get()
+      .then(querySnapshot => {
+        const _users = [];
+        querySnapshot.forEach(doc => {
+          _users.push({ ...doc.data(), uid: doc.id });
+        });
 
-    } else if (chatItem.type == 'classroom') {
-      const classroomId = chatItem.id;
-      const groupIds = chatItem.groupsIds
-      const announcementsRef = firestore().collection('announcements');
-      const announcementsSubscriber = announcementsRef
-        .where('recipients.classroomIds', 'array-contains', classroomId)
-        // .where('recipients.groupsIds', 'in', groupIds)
-        // .where('recipients.groupsIds', 'array-contains-any', groupIds)
-        .orderBy('announcementTime', 'asc')
-        .onSnapshot(snapshot => {
-          const _announcements = []
-          snapshot.docs.forEach(doc => {
-            let _announcement = doc.data()
-            _announcement.id = doc.id
-            _announcements.push(_announcement)
-          })
+        if (chatItem.type == 'group') {
+          const groupId = chatItem.id;
+          const announcementsRef = firestore().collection('announcements');
+          announcementsRef.where('recipients.groupsIds', 'array-contains', groupId)
+            .orderBy('announcementTime', 'asc')
+            .onSnapshot(snapshot => {
+              const _announcements = []
+              snapshot.docs.forEach(doc => {
+                let _announcement = doc.data()
+                _announcement.id = doc.id
+                _announcement.publishedBy = _users.find(user => user.uid == _announcement.publishedBy)
+                _announcements.push(_announcement)
+              })
 
-          setAnnouncements(_announcements)
-        })
-    }
+              setAnnouncements(_announcements)
+            })
+
+        } else if (chatItem.type == 'classroom') {
+          const classroomId = chatItem.id;
+          const groupIds = chatItem.groupsIds
+          const announcementsRef = firestore().collection('announcements');
+          const announcementsSubscriber = announcementsRef
+            .where('recipients.classroomIds', 'array-contains', classroomId)
+            // .where('recipients.groupsIds', 'in', groupIds)
+            // .where('recipients.groupsIds', 'array-contains-any', groupIds)
+            .orderBy('announcementTime', 'asc')
+            .onSnapshot(snapshot => {
+              const _announcements = []
+              snapshot.docs.forEach(doc => {
+                let _announcement = doc.data()
+                _announcement.id = doc.id
+                _announcement.publishedBy = _users.find(user => user.uid == _announcement.publishedBy)
+                _announcements.push(_announcement)
+              })
+
+              setAnnouncements(_announcements)
+            })
+        }
+      })
+      .catch(error => {
+        console.log('Error getting users: ', error);
+      });
 
   }, [])
 
@@ -113,7 +135,7 @@ const ChatPage = ({ navigation, route }) => {
   const renderAnnouncements = ({ item }) => (
     <View style={styles.announcementContainer}>
       <View>
-        <Text style={styles.announcementSenderName}>{item.publishedBy}</Text>
+        <Text style={styles.announcementSenderName}>{currentUser.uid == item.publishedBy.uid? 'You' : item.publishedBy.displayName }</Text>
       </View>
       <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
         <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -148,10 +170,7 @@ const ChatPage = ({ navigation, route }) => {
             {/* <Text style={styles.audioSenderName}>{`${item.note}s`}</Text> */}
           </View>
           <View style={styles.announcementPicView}>
-            <Image
-              style={{ width: 50, height: 50 }}
-              source={{ uri: 'https://ui-avatars.com/api/?name=T4A&background=random&color=fff&length=3&rounded=true' }}
-            />
+            <CircleImage source={{ uri: item.publishedBy.photoURL }} size={50} />
           </View>
         </View>
 
