@@ -5,13 +5,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import Home from './src/screens/Home';
-import ChatList from './src/screens/ChatList'
 import ChatPage from './src/screens/ChatPage'
 import Toast from 'react-native-toast-message';
 import Login from './src/screens/Login'
 import { MenuProvider } from 'react-native-popup-menu';
 import Profile from './src/screens/Profile';
+import theme from './src/theme';
 
+let themeMode = theme.themeMode
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -43,7 +44,12 @@ function App() {
             <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
           </Stack.Navigator>
           :
-          <Stack.Navigator>
+          <Stack.Navigator screenOptions={{
+              headerTintColor: theme[themeMode]['text-primary'],
+              statusBarColor: theme[themeMode]['background-primary'],
+              headerStyle: { backgroundColor: theme[themeMode]['background-secondary'] }
+            }}
+          >
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="ChatPage" component={ChatPage} />
             <Stack.Screen name="Profile" component={Profile} options={{

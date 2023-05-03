@@ -11,6 +11,9 @@ import DatePicker from 'react-native-date-picker'
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
+import theme from '../theme';
+
+let themeMode = theme.themeMode
 
 const ChatList = ({ navigation }) => {
     const [selectedItems, setSelectedItems] = useState([]);
@@ -281,16 +284,16 @@ const ChatList = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: theme[themeMode]['background-quaternary'],
     },
     chatItem: {
-        backgroundColor: '#ffffff',
+        backgroundColor: theme[themeMode]['background-quaternary'],
         marginHorizontal: 10,
         marginVertical: 5,
     },
     card: {
         width: '100%',
-        backgroundColor: '#ffffff',
+        backgroundColor: theme[themeMode]['background-quaternary'],
         paddingHorizontal: 16,
         paddingVertical: 8,
     },
@@ -312,6 +315,7 @@ const styles = StyleSheet.create({
         borderRadius: 50,
     },
     chatName: {
+        color: theme[themeMode]['text-primary'],
         fontWeight: 'bold',
         fontSize: 18,
     },

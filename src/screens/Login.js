@@ -1,12 +1,10 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, ImageBackground, StatusBar, } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { AntDesign } from '@expo/vector-icons';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import LottieView from 'lottie-react-native';
-import CircleImage from '../components/CircleImage';
 
 const Login = () => {
     const [initializing, setInitializing] = useState(true);
@@ -67,19 +65,19 @@ const Login = () => {
             <StatusBar backgroundColor="#120b1e" barStyle="light-content" />
             <SafeAreaView style={styles.container}>
                 <Image source={require('../../assets/icon.png')} style={{ width: 150, height: 150, marginVertical: 100 }} />
-                    <TouchableOpacity style={styles.loginButton} onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!')).catch(error => console.log(error))}>
-                        <LottieView
-                            source={require('../../assets/google-logo.json')}
-                            resizeMode="cover"
-                            autoPlay
-                            style={{
-                                width: 60,
-                                height: 60,
-                                backgroundColor: 'transparent',
-                            }}
-                        />
-                        <Text style={styles.loginText}>Continue with Google</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity style={styles.loginButton} onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!')).catch(error => console.log(error))}>
+                    <LottieView
+                        source={require('../../assets/google-logo.json')}
+                        resizeMode="cover"
+                        autoPlay
+                        style={{
+                            width: 60,
+                            height: 60,
+                            backgroundColor: 'transparent',
+                        }}
+                    />
+                    <Text style={styles.loginText}>Continue with Google</Text>
+                </TouchableOpacity>
             </SafeAreaView>
         </ImageBackground>
     )

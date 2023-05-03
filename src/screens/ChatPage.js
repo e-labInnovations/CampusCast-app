@@ -6,6 +6,9 @@ import Slider from '@react-native-community/slider';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import CircleImage from '../components/CircleImage';
+import theme from '../theme';
+
+let themeMode = theme.themeMode
 
 const ChatPage = ({ navigation, route }) => {
   const { chatItem } = route.params;
@@ -133,9 +136,9 @@ const ChatPage = ({ navigation, route }) => {
   }
 
   const renderAnnouncements = ({ item }) => (
-    <View style={styles.announcementContainer}>
+    <View style={[styles.announcementContainer, currentUser.uid == item.publishedBy.uid ? styles.announcementContainerYou : styles.announcementContainerOthers]}>
       <View>
-        <Text style={styles.announcementSenderName}>{currentUser.uid == item.publishedBy.uid? 'You' : item.publishedBy.displayName }</Text>
+        <Text style={styles.announcementSenderName}>{currentUser.uid == item.publishedBy.uid ? 'You' : item.publishedBy.displayName}</Text>
       </View>
       <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
         <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -165,9 +168,8 @@ const ChatPage = ({ navigation, route }) => {
               value={0}
               minimumTrackTintColor="#000000"
               maximumTrackTintColor="#000000"
+              thumbTintColor="#fff"
             />
-
-            {/* <Text style={styles.audioSenderName}>{`${item.note}s`}</Text> */}
           </View>
           <View style={styles.announcementPicView}>
             <CircleImage source={{ uri: item.publishedBy.photoURL }} size={50} />
@@ -177,6 +179,10 @@ const ChatPage = ({ navigation, route }) => {
         <View style={styles.announcementDurAndTime}>
           <Text style={{ flex: 1, textAlign: 'left', color: '#ccc' }}>{item.duration}</Text>
           <Text style={{ flex: 1, textAlign: 'right', color: '#ccc' }}>{`${formatFirestoreTimestamp(item.announcementTime)}`}</Text>
+        </View>
+
+        <View style={styles.announcementNoteView}>
+          <Text style={styles.announcementNote}>{`${item.note}`}</Text>
         </View>
       </View>
     </View>
@@ -202,7 +208,7 @@ const ChatPage = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ededed',
+    backgroundColor: theme[themeMode]['background-quaternary'],
   },
   userInfoContainer: {
     flexDirection: 'row',
@@ -218,22 +224,27 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    color: 'black',
+    color: theme[themeMode]['text-primary'],
   },
   optionsButton: {},
   chatContainer: {
     flex: 1,
-    padding: 10,
+    paddingHorizontal: 10,
   },
   announcementContainer: {
     flexDirection: 'column',
     marginBottom: 10,
     backgroundColor: '#128C7E',
     width: '75%',
-    borderTopRightRadius: 20,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    // borderRadius: 20
+  },
+  announcementContainerYou: {
+    borderTopLeftRadius: 20,
+    alignSelf: 'flex-end'
+  },
+  announcementContainerOthers: {
+    borderTopRightRadius: 20,
   },
   announcementSenderName: {
     fontWeight: 'bold',
@@ -274,6 +285,18 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginRight: 10
   },
+  announcementNoteView: {
+    width: '99%',
+    paddingHorizontal: 10,
+    marginBottom: 2,
+    marginHorizontal: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  announcementNote: {
+    color: '#000'
+  }
 });
 
 export default ChatPage;

@@ -12,7 +12,9 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import ChatList from './ChatList';
 import ExamSchedule from './ExamSchedule';
+import theme from '../theme';
 
+let themeMode = theme.themeMode
 const Tab = createMaterialTopTabNavigator();
 
 const Home = ({ navigation }) => {
@@ -21,21 +23,27 @@ const Home = ({ navigation }) => {
             title: null,
             headerShadowVisible: false,
             headerLeft: () => {
-                return <Image source={require('../../assets/name.png')} style={styles.logoImage} />
+                return <View style={styles.logoView}>
+                    <Image source={require('../../assets/name.png')} style={styles.logoImage} />
+                </View>
             },
             headerRight: () => {
                 return <Menu>
                     <MenuTrigger>
-                        <Ionicons name="ellipsis-vertical" size={24} color="black" />
+                        <Ionicons name="ellipsis-vertical" size={24} color={theme[themeMode]['text-primary']} />
                     </MenuTrigger>
                     <MenuOptions customStyles={{
                         optionsContainer: {
                             borderRadius: 10,
                             overflow: 'hidden',
+                            backgroundColor: theme[themeMode]['background-quaternary'],
                         },
                         optionWrapper: {
                             padding: 10
-                        }
+                        },
+                        optionText: {
+                            color: theme[themeMode]['text-primary']
+                        },
                     }}>
                         <MenuOption onSelect={() => navigation.navigate('Profile')} text='Profile' />
                         <MenuOption onSelect={() => alert('Settings')} text='Settings' customStyles={{ fontSize: 20 }} />
@@ -58,10 +66,15 @@ const Home = ({ navigation }) => {
 
     return (
         <Tab.Navigator screenOptions={{
+            tabBarActiveTintColor: theme[themeMode]['text-primary'],
+            tabBarIndicatorStyle: {
+                backgroundColor: theme[themeMode]['secondary']
+            },
             tabBarStyle: {
                 height: 30,
                 padding: 0,
-                margin: 0
+                margin: 0,
+                backgroundColor: theme[themeMode]['background-secondary'],
             },
             tabBarItemStyle: {
                 flex: 1,
@@ -93,6 +106,10 @@ const Home = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
+    logoView: {
+        backgroundColor: theme[themeMode].light,
+        borderRadius: 10
+    },
     logoImage: {
         height: 30,
         width: 150,
