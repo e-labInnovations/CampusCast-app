@@ -7,6 +7,7 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import CircleImage from '../components/CircleImage';
 import RecordingsView from '../components/RecordingView'
+import PlayedInClassroomsModal from '../components/PlayedInClassroomsModal';
 import theme from '../theme';
 
 let themeMode = theme.themeMode
@@ -19,6 +20,8 @@ const ChatPage = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [playableDurationMillis, setPlayableDurationMillis] = useState(0);
   const [positionMillis, setPositionMillis] = useState(0);
+  const [showPlayedInClassroomsModal, setShowPlayedInClassroomsModal] = useState(false);
+  const [playedInClassroomsModalIds, setPlayedInClassroomsModalIds] = useState(null);
 
 
   useEffect(() => {
@@ -114,7 +117,7 @@ const ChatPage = ({ navigation, route }) => {
         setPlayingAnnouncementId(id)
         setPlayableDurationMillis(status.durationMillis)
         setPositionMillis(status.positionMillis)
-        if(status.positionMillis == status.playableDurationMillis) {
+        if (status.positionMillis == status.playableDurationMillis) {
           setPlayingAnnouncementId(null);
         }
       }
@@ -151,7 +154,12 @@ const ChatPage = ({ navigation, route }) => {
   }
 
   const renderAnnouncements = ({ item }) => (
-    <View style={[styles.announcementContainer, currentUser.uid == item.publishedBy.uid ? styles.announcementContainerYou : styles.announcementContainerOthers]}>
+    <TouchableOpacity style={[styles.announcementContainer, currentUser.uid == item.publishedBy.uid ? styles.announcementContainerYou : styles.announcementContainerOthers]}
+      onPress={() => {
+        setPlayedInClassroomsModalIds(item.playedInClassrooms)
+        setShowPlayedInClassroomsModal(true)
+        console.log("Touch");
+      }}>
       <View>
         <Text style={styles.announcementSenderName}>{currentUser.uid == item.publishedBy.uid ? 'You' : item.publishedBy.displayName}</Text>
       </View>
@@ -179,8 +187,8 @@ const ChatPage = ({ navigation, route }) => {
             <Slider
               style={{ width: '100%', height: 40 }}
               minimumValue={0}
-              maximumValue={(playingAnnouncementId === item.id)?playableDurationMillis:10}
-              value={(playingAnnouncementId === item.id)?positionMillis:0}
+              maximumValue={(playingAnnouncementId === item.id) ? playableDurationMillis : 10}
+              value={(playingAnnouncementId === item.id) ? positionMillis : 0}
               minimumTrackTintColor="#000000"
               maximumTrackTintColor="#000000"
               thumbTintColor="#fff"
@@ -200,7 +208,7 @@ const ChatPage = ({ navigation, route }) => {
           <Text style={styles.announcementNote}>{`${item.note}`}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -214,12 +222,13 @@ const ChatPage = ({ navigation, route }) => {
           keyExtractor={item => item.id.toString()}
           renderItem={renderAnnouncements}
           // contentContainerStyle={{borderWidth: 2}}
-          ListHeaderComponent={<View style={{marginBottom: 75}}></View>}
+          ListHeaderComponent={<View style={{ marginBottom: 75 }}></View>}
         />
 
         <View style={styles.recordingViewContainer}>
           <RecordingsView handleSend={handleSendAudio} />
         </View>
+        <PlayedInClassroomsModal  isVisible={showPlayedInClassroomsModal} classroomIds={playedInClassroomsModalIds} onClose={()=> setShowPlayedInClassroomsModal(false)} />
       </View>
     </SafeAreaView>
   );
