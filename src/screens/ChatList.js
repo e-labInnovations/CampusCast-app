@@ -284,16 +284,16 @@ const ChatList = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme[themeMode]['background-quaternary'],
+        backgroundColor: theme[themeMode]['background-light'],
     },
     chatItem: {
-        backgroundColor: theme[themeMode]['background-quaternary'],
+        backgroundColor: theme[themeMode]['background-light'],
         marginHorizontal: 10,
         marginVertical: 5,
     },
     card: {
         width: '100%',
-        backgroundColor: theme[themeMode]['background-quaternary'],
+        backgroundColor: theme[themeMode]['background-light'],
         paddingHorizontal: 16,
         paddingVertical: 8,
     },

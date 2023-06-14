@@ -15,7 +15,7 @@ const ExamSchedule = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme[themeMode]['background-quaternary'],
+    backgroundColor: theme[themeMode]['background-light'],
   },
 })
 

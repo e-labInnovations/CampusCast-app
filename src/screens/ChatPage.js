@@ -17,6 +17,8 @@ const ChatPage = ({ navigation, route }) => {
   const [playingAnnouncementId, setPlayingAnnouncementId] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [currentUser, setCurrentUser] = useState(null)
+  const [playableDurationMillis, setPlayableDurationMillis] = useState(0);
+  const [positionMillis, setPositionMillis] = useState(0);
 
 
   useEffect(() => {
@@ -108,7 +110,14 @@ const ChatPage = ({ navigation, route }) => {
     const { sound: newSound } = await Audio.Sound.createAsync(
       { uri },
       { shouldPlay: true },
-      () => setPlayingAnnouncementId(id)
+      (status) => {
+        setPlayingAnnouncementId(id)
+        setPlayableDurationMillis(status.durationMillis)
+        setPositionMillis(status.positionMillis)
+        if(status.positionMillis == status.playableDurationMillis) {
+          setPlayingAnnouncementId(null);
+        }
+      }
     );
     setSound(newSound);
   };
@@ -170,8 +179,8 @@ const ChatPage = ({ navigation, route }) => {
             <Slider
               style={{ width: '100%', height: 40 }}
               minimumValue={0}
-              maximumValue={10}
-              value={0}
+              maximumValue={(playingAnnouncementId === item.id)?playableDurationMillis:10}
+              value={(playingAnnouncementId === item.id)?positionMillis:0}
               minimumTrackTintColor="#000000"
               maximumTrackTintColor="#000000"
               thumbTintColor="#fff"
