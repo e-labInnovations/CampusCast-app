@@ -182,7 +182,6 @@ const ChatPage = ({ navigation, route }) => {
       onPress={() => {
         setPlayedInClassroomsModalIds(item.playedInClassrooms ? item.playedInClassrooms : [])
         setShowPlayedInClassroomsModal(true)
-        console.log("Touch");
       }}>
       <View style={styles.announcementSenderView}>
         <Text style={styles.announcementSenderName}>{(currentUser.uid == item.publishedBy.uid ? 'You' : item.publishedBy.displayName)}</Text>
