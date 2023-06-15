@@ -73,13 +73,20 @@ const ChatPage = ({ navigation, route }) => {
             .then(results => {
               const mergedAnnouncements = [];
 
-              results.forEach(querySnapshot => {
-                querySnapshot.docs.forEach(doc => {
-                  let announcement = doc.data();
-                  announcement.id = doc.id;
-                  announcement.publishedBy = _users.find(user => user.uid === announcement.publishedBy);
-                  mergedAnnouncements.push(announcement);
-                });
+              results[0].docs.forEach(doc => {
+                let announcement = doc.data();
+                announcement.id = doc.id;
+                announcement.publishedBy = _users.find(user => user.uid === announcement.publishedBy);
+                announcement.announcement_type = 'classroom';
+                mergedAnnouncements.push(announcement);
+              });
+          
+              results[1].docs.forEach(doc => {
+                let announcement = doc.data();
+                announcement.id = doc.id;
+                announcement.publishedBy = _users.find(user => user.uid === announcement.publishedBy);
+                announcement.announcement_type = 'group';
+                mergedAnnouncements.push(announcement);
               });
 
               const uniqueAnnouncements = Array.from(new Set(mergedAnnouncements.map(a => a.id)))
@@ -177,8 +184,9 @@ const ChatPage = ({ navigation, route }) => {
         setShowPlayedInClassroomsModal(true)
         console.log("Touch");
       }}>
-      <View>
-        <Text style={styles.announcementSenderName}>{currentUser.uid == item.publishedBy.uid ? 'You' : item.publishedBy.displayName}</Text>
+      <View style={styles.announcementSenderView}>
+        <Text style={styles.announcementSenderName}>{(currentUser.uid == item.publishedBy.uid ? 'You' : item.publishedBy.displayName)}</Text>
+        <Text style={styles.announcementIsGroup}>{item.announcement_type == 'group'? '(Group)':''}</Text>
       </View>
       <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', }}>
         <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -293,7 +301,17 @@ const styles = StyleSheet.create({
   announcementContainerOthers: {
     borderTopRightRadius: 20,
   },
+  announcementSenderView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   announcementSenderName: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 10,
+    color: 'white'
+  },
+  announcementIsGroup: {
     fontWeight: 'bold',
     fontSize: 14,
     marginLeft: 10,
