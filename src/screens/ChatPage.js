@@ -156,7 +156,7 @@ const ChatPage = ({ navigation, route }) => {
   const renderAnnouncements = ({ item }) => (
     <TouchableOpacity style={[styles.announcementContainer, currentUser.uid == item.publishedBy.uid ? styles.announcementContainerYou : styles.announcementContainerOthers]}
       onPress={() => {
-        setPlayedInClassroomsModalIds(item.playedInClassrooms)
+        setPlayedInClassroomsModalIds(item.playedInClassrooms ? item.playedInClassrooms : [])
         setShowPlayedInClassroomsModal(true)
         console.log("Touch");
       }}>
@@ -228,7 +228,7 @@ const ChatPage = ({ navigation, route }) => {
         <View style={styles.recordingViewContainer}>
           <RecordingsView handleSend={handleSendAudio} />
         </View>
-        <PlayedInClassroomsModal  isVisible={showPlayedInClassroomsModal} classroomIds={playedInClassroomsModalIds} onClose={()=> setShowPlayedInClassroomsModal(false)} />
+        <PlayedInClassroomsModal isVisible={showPlayedInClassroomsModal} classroomIds={playedInClassroomsModalIds} onClose={() => setShowPlayedInClassroomsModal(false)} />
       </View>
     </SafeAreaView>
   );

@@ -1,49 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { Modal, View, Text, Pressable, StyleSheet, Image, FlatList } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import firestore from '@react-native-firebase/firestore';
+import { firebase } from '@react-native-firebase/firestore';
+import theme from '../theme';
+
+let themeMode = theme.themeMode
 
 export default function PlayedInClassroomsModal({ isVisible, classroomIds, onClose }) {
     const [classrooms, setClassrooms] = useState([])
 
     useEffect(() => {
-        const classroomsRef = firestore().collection('devices');
-        const classroomsSubscriber = classroomsRef.onSnapshot(snapshot => {
-            const _classrooms = []
-            snapshot.docs.forEach(doc => {
-                let _classroom = doc.data()
-                _classroom.id = doc.id
-                _classroom.type = 'classroom'
-                _classroom.name = `${_classroom.classroomName} (${_classroom.classroomCode})`
-                _classrooms.push(_classroom)
-            })
+        // console.log("ids", classroomIds);
+        if (classroomIds && classroomIds.length) {
+            const classroomsRef = firestore().collection('devices');
+            const classroomsSubscriber = classroomsRef
+                .where(firebase.firestore.FieldPath.documentId(), 'in', classroomIds)
+                .onSnapshot(snapshot => {
+                    const _classrooms = []
+                    snapshot.docs.forEach(doc => {
+                        let _classroom = doc.data()
+                        _classroom.id = doc.id
+                        _classroom.type = 'classroom'
+                        _classroom.name = `${_classroom.classroomName} (${_classroom.classroomCode})`
+                        _classrooms.push(_classroom)
+                    })
 
-            setClassrooms(_classrooms)
-        });
-    }, [])
+                    setClassrooms(_classrooms)
+                });
+        } else {
+            setClassrooms([])
+        }
+    }, [classroomIds])
+
+    const renderClassroomItem = ({ item }) => (
+        <View style={styles.itemContainer}>
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <View style={styles.detailsContainer}>
+                <Text style={styles.classroomName}>{item.classroomName}</Text>
+                <Text style={styles.classroomCode}>Code: {item.classroomCode}</Text>
+                {/* <Text style={styles.time}>Time: {item.time}</Text> */}
+            </View>
+        </View>
+    )
+
+    const renderEmptyList = () => (
+        <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No classrooms available</Text>
+        </View>
+    );
+
     return (
         <Modal animationType="slide" transparent={true} visible={isVisible}>
             <View style={styles.modalContent}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>Played Classrooms</Text>
                     <Pressable onPress={onClose}>
-                        <MaterialIcons name="close" color="#fff" size={22} />
+                        <MaterialIcons name="close" color="#fff" size={26} />
                     </Pressable>
                 </View>
-                {classrooms.map((classroom, index) => (
-                    <View style={styles.itemContainer} key={index}>
-                        <Image source={{ uri: classroom.image }} style={styles.image} />
-                        <View style={styles.detailsContainer}>
-                            <Text style={styles.classroomName}>{classroom.classroomName}</Text>
-                            <Text style={styles.classroomCode}>Code: {classroom.classroomCode}</Text>
-                            <Text style={styles.time}>Time: {classroom.time}</Text>
-                        </View>
-                    </View>
-                ))}
-                <Text>
-                    {JSON.stringify(classrooms)}
-                    {console.log(classrooms)}
-                </Text>
+                <FlatList
+                    data={classrooms}
+                    renderItem={renderClassroomItem}
+                    ListEmptyComponent={renderEmptyList}
+                    keyExtractor={item => item.id.toString()}
+                />
             </View>
         </Modal>
     );
@@ -51,9 +72,9 @@ export default function PlayedInClassroomsModal({ isVisible, classroomIds, onClo
 
 const styles = StyleSheet.create({
     modalContent: {
-        height: '25%',
+        height: '50%',
         width: '100%',
-        backgroundColor: '#25292e',
+        backgroundColor: theme[themeMode]['background-light'],
         borderTopRightRadius: 18,
         borderTopLeftRadius: 18,
         position: 'absolute',
@@ -73,13 +94,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
-    pickerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 50,
-        paddingVertical: 20,
-    },
 
     itemContainer: {
         flexDirection: 'row',
@@ -87,8 +101,8 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     image: {
-        width: 80,
-        height: 80,
+        width: 60,
+        height: 60,
         marginRight: 16,
         borderRadius: 40,
     },
@@ -106,5 +120,14 @@ const styles = StyleSheet.create({
     },
     time: {
         fontSize: 14,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+    emptyText: {
+        fontSize: 18,
+        textAlign: 'center',
     },
 });  
