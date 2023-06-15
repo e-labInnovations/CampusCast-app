@@ -56,24 +56,41 @@ const ChatPage = ({ navigation, route }) => {
 
         } else if (chatItem.type == 'classroom') {
           const classroomId = chatItem.id;
-          const groupIds = chatItem.groupsIds
+          const groupIds = chatItem.groupsIds;
           const announcementsRef = firestore().collection('announcements');
-          const announcementsSubscriber = announcementsRef
-            .where('recipients.classroomIds', 'array-contains', classroomId)
-            // .where('recipients.groupsIds', 'in', groupIds)
-            // .where('recipients.groupsIds', 'array-contains-any', groupIds)
-            .orderBy('announcementTime', 'asc')
-            .onSnapshot(snapshot => {
-              const _announcements = []
-              snapshot.docs.forEach(doc => {
-                let _announcement = doc.data()
-                _announcement.id = doc.id
-                _announcement.publishedBy = _users.find(user => user.uid == _announcement.publishedBy)
-                _announcements.push(_announcement)
-              })
 
-              setAnnouncements(_announcements)
+          const classroomQuery = announcementsRef
+            .where('recipients.classroomIds', 'array-contains', classroomId)
+            .orderBy('announcementTime', 'asc')
+            .get();
+
+          const groupsQuery = announcementsRef
+            .where('recipients.groupsIds', 'array-contains-any', groupIds)
+            .orderBy('announcementTime', 'asc')
+            .get();
+
+          Promise.all([classroomQuery, groupsQuery])
+            .then(results => {
+              const mergedAnnouncements = [];
+
+              results.forEach(querySnapshot => {
+                querySnapshot.docs.forEach(doc => {
+                  let announcement = doc.data();
+                  announcement.id = doc.id;
+                  announcement.publishedBy = _users.find(user => user.uid === announcement.publishedBy);
+                  mergedAnnouncements.push(announcement);
+                });
+              });
+
+              const uniqueAnnouncements = Array.from(new Set(mergedAnnouncements.map(a => a.id)))
+                .map(id => mergedAnnouncements.find(a => a.id === id));
+
+              uniqueAnnouncements.sort((a, b) => a.announcementTime - b.announcementTime);
+              setAnnouncements(uniqueAnnouncements);
             })
+            .catch(error => {
+              console.error('Error fetching announcements:', error);
+            });
         }
       })
       .catch(error => {
