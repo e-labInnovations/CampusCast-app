@@ -136,7 +136,10 @@ const ChatList = ({ navigation }) => {
             // const response = await fetch(fileUri);
             // const blob = await response.blob();
             const announcementRef = storage().ref(`announcements/${fileName}`)
-            const announcementTask = announcementRef.putFile(fileUri)
+            var metadata = {
+                contentType: 'audio/x-m4a',
+            }
+            const announcementTask = announcementRef.putFile(fileUri, metadata)
             setIsUploading(true)
 
             announcementTask.on('state_changed', taskSnapshot => {
@@ -144,7 +147,6 @@ const ChatList = ({ navigation }) => {
             });
 
             announcementTask.then(async () => {
-                console.log('Udio uploaded to the bucket!');
                 const downloadUrl = await announcementRef.getDownloadURL();
 
                 const recipientsClassrooms = selectedItems.filter(item => item.type == 'classroom').map(item => item.id)
