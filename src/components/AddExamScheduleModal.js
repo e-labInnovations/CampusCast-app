@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Modal, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Modal, TouchableOpacity, TextInput, FlatList, Dimensions } from 'react-native';
 import DatePicker from 'react-native-date-picker';
+import Toast from 'react-native-toast-message';
 import theme from '../theme';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+
 let themeMode = theme.themeMode
 
 const AddExamScheduleModal = ({ visible, onClose }) => {
@@ -9,19 +13,71 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
     const [date, setDate] = useState(new Date());
     const [startAt, setStartAt] = useState(new Date());
     const [endAt, setEndAt] = useState(new Date());
+    const [classrooms, setClassrooms] = useState([
+        '236',
+        'M410',
+        'M320',
+        'M220',
+        'M530',
+        'M630',
+        'M740',
+        'M550',
+        'M650',
+        'M750',
+        'M450',
+    ])
 
     const handleCancel = () => {
         onClose();
     };
 
     const handleSchedule = () => {
-        console.log('Exam Schedule Saved');
-        onClose();
+        if (title == "") {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Empty title'
+            });
+            // onClose();
+        } else {
+            const _startAt = new Date(startAt);
+            _startAt.setHours(startAt.getHours());
+            _startAt.setMinutes(startAt.getMinutes());
+            _startAt.setSeconds(0);
+
+            const _endAt = new Date(endAt);
+            _endAt.setHours(endAt.getHours());
+            _endAt.setMinutes(endAt.getMinutes());
+            _endAt.setSeconds(0);
+
+            firestore()
+                .collection('exam_schedules')
+                .add({
+                    title: title,
+                    classroomIds: [],
+                    startAt: _startAt,
+                    endAt: _endAt,
+                    publishedBy: auth().currentUser.uid
+
+                })
+                .then(() => {
+                    console.log('New exam scheduled');
+                    onClose();
+                });
+
+        }
     };
+
+    const renderClassroomItem = ({ item }) => (
+        <TouchableOpacity style={styles.classroomItem}>
+            <Text style={styles.classroomName}>{item}</Text>
+        </TouchableOpacity>
+    );
 
     return (
         <Modal visible={visible} animationType="slide">
             <View style={styles.container}>
+                <Toast />
                 <Text style={styles.title}>Add New Exam Schedule</Text>
 
                 <View style={styles.inputContainer}>
@@ -37,6 +93,7 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Date:</Text>
                     <DatePicker
+                        minimumDate={new Date()}
                         date={date}
                         onDateChange={setDate}
                         mode="date"
@@ -69,6 +126,17 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
                     />
                 </View>
 
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Classrooms:</Text>
+                    <FlatList
+                        data={classrooms}
+                        numColumns={5}
+                        renderItem={renderClassroomItem}
+                        keyExtractor={(item) => item}
+                        contentContainerStyle={styles.gridContainer}
+                    />
+                </View>
+
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
                         <Text style={styles.buttonText}>Cancel</Text>
@@ -84,6 +152,9 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
 };
 
 export default AddExamScheduleModal;
+
+const { width } = Dimensions.get('window');
+const itemWidth = width / 4;
 
 const styles = StyleSheet.create({
     container: {
@@ -112,7 +183,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3,
         elevation: 3,
-        
+
     },
     label: {
         width: 120,
@@ -152,5 +223,18 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
+    },
+    gridContainer: {
+        alignItems: 'center',
+    },
+    classroomItem: {
+        // width: itemWidth - 20, // Subtract margin and padding
+        margin: 3,
+        paddingHorizontal: 5,
+        backgroundColor: 'red',
+        borderRadius: 5,
+    },
+    classroomName: {
+        color: '#fff',
     },
 });

@@ -31,7 +31,7 @@ const ExamSchedule = () => {
       "nanoseconds": 738000000,
       "seconds": 1687062600,
     },
-    "note": "Second series exam"
+    "title": "Second series exam"
   },])
   const [addModalVisible, setAddModalVisible] = useState(false);
 
@@ -79,7 +79,7 @@ const ExamSchedule = () => {
       <Card style={styles.card}>
         <View style={styles.rowView}>
           <Text style={styles.date}>{formatDate(item.startAt)}</Text>
-          <Text>{item.note}</Text>
+          <Text>{item.title}</Text>
           <Text>{formatTime(item.startAt)} - {formatTime(item.endAt)}</Text>
         </View>
       </Card>
