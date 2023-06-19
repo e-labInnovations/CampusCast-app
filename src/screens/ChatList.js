@@ -213,7 +213,7 @@ const ChatList = ({ navigation }) => {
                     </View>
                     <View style={styles.timeView}>
                         <Text style={styles.chatTime}>{item.time}</Text>
-                        {item.lastAnnouncementSend ? <Ionicons name='ios-checkmark-circle' size={24} color='gray' /> : <Ionicons name='time' size={24} color='gray' />}
+                        {item.lastAnnouncementSend == 0 ? <Ionicons name='time' size={24} color={'gray'} /> : item.lastAnnouncementSend == 1 ? <Ionicons name='ios-checkmark-circle' size={24} color='gray' /> :  <Ionicons name='checkmark-done-circle' size={24} color={theme[themeMode]['secondary']} />}
                     </View>
                     {redayToSelect && (
                         <Checkbox
