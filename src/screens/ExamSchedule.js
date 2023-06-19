@@ -10,44 +10,22 @@ import theme from '../theme'
 let themeMode = theme.themeMode
 
 const ExamSchedule = () => {
-  const [examSchedules, setExamSchedules] = useState([{
-    "classroomIds": [
-      "2f3s3YNWRc5d4dUT0ZR8",
-      "2f3s3YNWRc5d4dUTR8",
-      "2f3s3YNWRc5d4d0ZR8",
-      "2f3s3YNWRc5dUT0ZR8",
-      "2f3s3YNWRc4dUT0ZR8",
-      "2f3s3YNW5d4dUT0ZR8",
-      "2f3s3YRc5d4dUT0ZR8",
-      "2f3sNWRc5d4dUT0ZR8",
-    ],
-    "endAt": {
-      "nanoseconds": 979000000,
-      "seconds": 1687071600,
-    },
-    "id": "sBzDJ1l3JSbJrsRZsDt7",
-    "publishedBy": "user001",
-    "startAt": {
-      "nanoseconds": 738000000,
-      "seconds": 1687062600,
-    },
-    "title": "Second series exam"
-  },])
+  const [examSchedules, setExamSchedules] = useState([])
   const [addModalVisible, setAddModalVisible] = useState(false);
 
-  // useEffect(() => {
-  //   const examSchedulesRef = firestore().collection('exam_schedules');
-  //   const groupsSubscriber = examSchedulesRef.onSnapshot(snapshot => {
-  //     const _examSchedules = []
-  //     snapshot.docs.forEach(doc => {
-  //       let _examSchedule = doc.data()
-  //       _examSchedule.id = doc.id
-  //       _examSchedules.push(_examSchedule)
-  //     })
+  useEffect(() => {
+    const examSchedulesRef = firestore().collection('exam_schedules');
+    const groupsSubscriber = examSchedulesRef.onSnapshot(snapshot => {
+      const _examSchedules = []
+      snapshot.docs.forEach(doc => {
+        let _examSchedule = doc.data()
+        _examSchedule.id = doc.id
+        _examSchedules.push(_examSchedule)
+      })
 
-  //     setExamSchedules(_examSchedules)
-  //   })
-  // }, [])
+      setExamSchedules(_examSchedules)
+    })
+  }, [])
 
   const formatDate = (timestamp) => {
     const dateObj = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);

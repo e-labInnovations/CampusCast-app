@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Modal, TouchableOpacity, TextInput, FlatList, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Modal, TouchableOpacity, TextInput, FlatList, Dimensions, ScrollView } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import Toast from 'react-native-toast-message';
 import theme from '../theme';
@@ -13,22 +13,47 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
     const [date, setDate] = useState(new Date());
     const [startAt, setStartAt] = useState(new Date());
     const [endAt, setEndAt] = useState(new Date());
-    const [classrooms, setClassrooms] = useState([
-        '236',
-        'M410',
-        'M320',
-        'M220',
-        'M530',
-        'M630',
-        'M740',
-        'M550',
-        'M650',
-        'M750',
-        'M450',
-    ])
+    const [classrooms, setClassrooms] = useState([])
+    const [selectedClassrooms, setSelectedClassrooms] = useState([])
+
+    useEffect(() => {
+        firestore().collection('devices')
+            .get()
+            .then(querySnapshot => {
+                const _classrooms = []
+                querySnapshot.forEach(doc => {
+                    let _classroom = doc.data()
+                    _classroom.id = doc.id
+                    _classrooms.push(_classroom)
+                })
+
+                console.log("🚀 ~ file: AddExamScheduleModal.js:40 ~ classroomsSubscriber ~ _classroom:", _classrooms)
+                setClassrooms(_classrooms)
+            })
+            .catch(error => {
+                console.log('Error getting classrooms: ', error);
+            });
+    }, [])
+
 
     const handleCancel = () => {
         onClose();
+    };
+
+    const isClassroomSelected = (id) => {
+        return selectedClassrooms.find(classroom => classroom.id == id) ? true : false
+    }
+
+    const handleClassroomSelection = (id) => {
+        if (isClassroomSelected(id)) {
+            const _classrooms = selectedClassrooms.filter(classroom => classroom.id !== id);
+            setSelectedClassrooms(_classrooms);
+        } else {
+            const selectedClassroom = classrooms.find(classroom => classroom.id === id);
+            if (selectedClassroom) {
+                setSelectedClassrooms(prevState => [...prevState, selectedClassroom]);
+            }
+        }
     };
 
     const handleSchedule = () => {
@@ -50,11 +75,13 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
             _endAt.setMinutes(endAt.getMinutes());
             _endAt.setSeconds(0);
 
+            let _selectedClassrooms = selectedClassrooms.map(classroom => classroom.id)
+
             firestore()
                 .collection('exam_schedules')
                 .add({
                     title: title,
-                    classroomIds: [],
+                    classroomIds: _selectedClassrooms,
                     startAt: _startAt,
                     endAt: _endAt,
                     publishedBy: auth().currentUser.uid
@@ -68,85 +95,105 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
         }
     };
 
-    const renderClassroomItem = ({ item }) => (
-        <TouchableOpacity style={styles.classroomItem}>
-            <Text style={styles.classroomName}>{item}</Text>
-        </TouchableOpacity>
-    );
+    const renderClassrooms = () => {
+        const gridItems = [];
+        const { length } = classrooms;
+
+        for (let i = 0; i < length; i += 4) {
+            const rowItems = classrooms.slice(i, i + 4);
+
+            const renderedRow = (
+                <View style={styles.gridRow} key={i}>
+                    {rowItems.map((classroom) => (
+                        <TouchableOpacity
+                            style={isClassroomSelected(classroom.id) ? styles.classroomItemSelected : styles.classroomItem}
+                            onPress={() => handleClassroomSelection(classroom.id)}
+                            key={classroom.id}
+                        >
+                            <Text style={styles.classroomName}>{classroom.classroomCode}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            );
+
+            gridItems.push(renderedRow);
+        }
+
+        return gridItems;
+    };
+
 
     return (
-        <Modal visible={visible} animationType="slide">
-            <View style={styles.container}>
-                <Toast />
-                <Text style={styles.title}>Add New Exam Schedule</Text>
+        <Modal visible={visible} animationType="slide" propagateSwipe={true}>
+            <ScrollView>
+                <View style={styles.container}>
+                    <Toast />
+                    <Text style={styles.title}>Add New Exam Schedule</Text>
 
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Title:</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter title"
-                        value={title}
-                        onChangeText={setTitle}
-                    />
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Title:</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter title"
+                            value={title}
+                            onChangeText={setTitle}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Date:</Text>
+                        <DatePicker
+                            minimumDate={new Date()}
+                            date={date}
+                            onDateChange={setDate}
+                            mode="date"
+                            textColor="#000"
+                            style={styles.datePicker}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Start Time:</Text>
+                        <DatePicker
+                            date={startAt}
+                            onDateChange={setStartAt}
+                            mode="time"
+                            textColor="#000"
+                            minuteInterval={5}
+                            style={styles.datePicker}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>End Time:</Text>
+                        <DatePicker
+                            date={endAt}
+                            onDateChange={setEndAt}
+                            mode="time"
+                            textColor="#000"
+                            minuteInterval={5}
+                            style={styles.datePicker}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Classrooms:</Text>
+                        <View style={styles.gridContainer}>
+                            {renderClassrooms()}
+                        </View>
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
+                            <Text style={styles.buttonText}>Cancel</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.button, styles.scheduleButton]} onPress={handleSchedule}>
+                            <Text style={styles.buttonText}>Schedule</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Date:</Text>
-                    <DatePicker
-                        minimumDate={new Date()}
-                        date={date}
-                        onDateChange={setDate}
-                        mode="date"
-                        textColor="#000"
-                        style={styles.datePicker}
-                    />
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Start Time:</Text>
-                    <DatePicker
-                        date={startAt}
-                        onDateChange={setStartAt}
-                        mode="time"
-                        textColor="#000"
-                        minuteInterval={5}
-                        style={styles.datePicker}
-                    />
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>End Time:</Text>
-                    <DatePicker
-                        date={endAt}
-                        onDateChange={setEndAt}
-                        mode="time"
-                        textColor="#000"
-                        minuteInterval={5}
-                        style={styles.datePicker}
-                    />
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Classrooms:</Text>
-                    <FlatList
-                        data={classrooms}
-                        numColumns={5}
-                        renderItem={renderClassroomItem}
-                        keyExtractor={(item) => item}
-                        contentContainerStyle={styles.gridContainer}
-                    />
-                </View>
-
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel}>
-                        <Text style={styles.buttonText}>Cancel</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.button, styles.scheduleButton]} onPress={handleSchedule}>
-                        <Text style={styles.buttonText}>Schedule</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            </ScrollView>
         </Modal>
     );
 };
@@ -170,6 +217,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     inputContainer: {
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10,
@@ -231,10 +279,27 @@ const styles = StyleSheet.create({
         // width: itemWidth - 20, // Subtract margin and padding
         margin: 3,
         paddingHorizontal: 5,
-        backgroundColor: 'red',
+        backgroundColor: theme[themeMode]['danger'],
+        borderRadius: 5,
+    },
+    classroomItemSelected: {
+        // width: itemWidth - 20, // Subtract margin and padding
+        margin: 3,
+        paddingHorizontal: 5,
+        backgroundColor: theme[themeMode]['secondary'],
         borderRadius: 5,
     },
     classroomName: {
         color: '#fff',
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+
+    gridRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10,
     },
 });
