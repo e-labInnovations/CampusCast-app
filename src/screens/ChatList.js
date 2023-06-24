@@ -32,11 +32,11 @@ const ChatList = ({ navigation }) => {
 
     useEffect(() => {
         const currentUser = auth().currentUser;
-        if(!currentUser) {
+        if (!currentUser) {
             signOut()
         }
         setCurrentUser(currentUser)
-        
+
         const classroomsRef = firestore().collection('devices');
         const classroomsSubscriber = classroomsRef.onSnapshot(snapshot => {
             const _classrooms = []
@@ -213,7 +213,7 @@ const ChatList = ({ navigation }) => {
                     </View>
                     <View style={styles.timeView}>
                         <Text style={styles.chatTime}>{item.time}</Text>
-                        {item.lastAnnouncementSend == 0 ? <Ionicons name='time' size={24} color={'gray'} /> : item.lastAnnouncementSend == 1 ? <Ionicons name='ios-checkmark-circle' size={24} color='gray' /> :  <Ionicons name='checkmark-done-circle' size={24} color={theme[themeMode]['secondary']} />}
+                        {item.lastAnnouncementSend == 0 ? <Ionicons name='time' size={24} color={'gray'} /> : item.lastAnnouncementSend == 1 ? <Ionicons name='ios-checkmark-circle' size={24} color='gray' /> : item.lastAnnouncementSend == 2 ? <Ionicons name='checkmark-done-circle' size={24} color='gray' /> : <Ionicons name='checkmark-done-circle' size={24} color={theme[themeMode]['secondary']} />}
                     </View>
                     {redayToSelect && (
                         <Checkbox
@@ -230,55 +230,55 @@ const ChatList = ({ navigation }) => {
     return (
         <View style={styles.container}>
 
-                <FlatList
-                    data={chatItems}
-                    keyExtractor={item => item.id.toString()}
-                    renderItem={renderChatItem}
-                    contentContainerStyle={{flexGrow: 1}}
-                />
+            <FlatList
+                data={chatItems}
+                keyExtractor={item => item.id.toString()}
+                renderItem={renderChatItem}
+                contentContainerStyle={{ flexGrow: 1 }}
+            />
 
-                {redayToSelect ? (
-                    <View style={styles.recordingViewContainer}>
-                        <View style={styles.sendView}>
-                            <TouchableOpacity onPress={handleCancelSelection} style={[styles.cancelButton]}>
-                                <Ionicons name="close" size={26} color="#fff" />
-                            </TouchableOpacity>
+            {redayToSelect ? (
+                <View style={styles.recordingViewContainer}>
+                    <View style={styles.sendView}>
+                        <TouchableOpacity onPress={handleCancelSelection} style={[styles.cancelButton]}>
+                            <Ionicons name="close" size={26} color="#fff" />
+                        </TouchableOpacity>
 
-                            <TextInput
-                                value={msgNote}
-                                onChangeText={(msgNote) => setMsgNote(msgNote)}
-                                placeholder={'Note: '}
-                                multiline={false}
-                                style={styles.msgNoteInput}
-                            />
+                        <TextInput
+                            value={msgNote}
+                            onChangeText={(msgNote) => setMsgNote(msgNote)}
+                            placeholder={'Note: '}
+                            multiline={false}
+                            style={styles.msgNoteInput}
+                        />
 
-                            <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
-                                {isUploading ?
-                                    <Ionicons name="cloud-upload" size={26} color="#fff" />
-                                    : <Ionicons name="send" size={26} color="#fff" />
-                                }
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity onPress={handleSendButton} onLongPress={showDatepicker} style={[styles.sendButton]}>
+                            {isUploading ?
+                                <Ionicons name="cloud-upload" size={26} color="#fff" />
+                                : <Ionicons name="send" size={26} color="#fff" />
+                            }
+                        </TouchableOpacity>
                     </View>
-                ) : (
-                    <View style={styles.recordingViewContainer}>
-                        <RecordingsView handleSend={handleSendAudio} />
-                    </View>
-                )}
-                <AnnouncementDetailsModal showModal={showModal} />
-                <DatePicker
-                    modal
-                    open={showDateModal}
-                    date={msgTime}
-                    theme="light"
-                    onConfirm={(date) => {
-                        setDateShowModal(false)
-                        setMsgTime(date)
-                    }}
-                    onCancel={() => {
-                        setDateShowModal(false)
-                    }}
-                />
+                </View>
+            ) : (
+                <View style={styles.recordingViewContainer}>
+                    <RecordingsView handleSend={handleSendAudio} />
+                </View>
+            )}
+            <AnnouncementDetailsModal showModal={showModal} />
+            <DatePicker
+                modal
+                open={showDateModal}
+                date={msgTime}
+                theme="light"
+                onConfirm={(date) => {
+                    setDateShowModal(false)
+                    setMsgTime(date)
+                }}
+                onCancel={() => {
+                    setDateShowModal(false)
+                }}
+            />
         </View>
     );
 };

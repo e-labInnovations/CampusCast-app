@@ -27,7 +27,6 @@ const AddExamScheduleModal = ({ visible, onClose }) => {
                     _classrooms.push(_classroom)
                 })
 
-                console.log("🚀 ~ file: AddExamScheduleModal.js:40 ~ classroomsSubscriber ~ _classroom:", _classrooms)
                 setClassrooms(_classrooms)
             })
             .catch(error => {
